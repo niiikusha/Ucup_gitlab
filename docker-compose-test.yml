@@ -1,0 +1,35 @@
+version: "3.4"
+ 
+services:
+  db:
+    image: postgres:12
+    container_name: ucup_db
+    env_file: ./.env
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+      - ./db/backup:/backup
+    ports:
+      - "5437:5432"
+ 
+  app:
+    container_name: ucuc_app
+    image: gitlab.lama.tomsk.ru:5050/lamaservices/management-of-commercial-terms-of-counterparties/ucup_backewrfvervrvrv:api-test
+    env_file: ./.env
+    restart: unless-stopped
+    ports:
+      - "8006:8001"
+    links:
+      - db
+    depends_on:
+      - db
+    command: /start
+ 
+  pgadmin:
+    container_name: ucup_pgadmin
+    image: dpage/pgadmin4
+    env_file: ./.env
+    volumes:
+      - ./pgadmin:/var/lib/pgadmin
+    ports:
+      - "5090:80"
+    user: root

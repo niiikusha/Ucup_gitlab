@@ -1,0 +1,85 @@
+1) Авторизация пользователя в системе
+POST запрос на URL + /api/token/
+В теле отправляется объект: 
+    {"username": "user", "password": "passworduser"}
+
+В случае успешного ответа от сервера придет следующее сообщение, содержащее токены
+    {
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NTc1NTA3NywianRpIjoiMDlhMDYwZGY4MmFjNGVhYzg4YmMwNDJlMTA4OTlhZDIiLCJ1c2VyX2lkIjoxfQ.MZrlQdnWRPRtFsfZQxqeeNOTnl1OE3pbka-bzO3-OHg",
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc1NjcwNDc3LCJqdGkiOiJjMmRlZWZhMTIwMjM0ZjllYTIxNjUxODFhZDNmNDNlYyIsInVzZXJfaWQiOjF9.MC0bNtXhCDyJyPeSFycDH-XY8nTK85psuax_pFQAhbE"
+    }
+В случае отрицательного ответа:
+    {
+    "detail": "Не найдено активной учетной записи с указанными данными"
+    }
+
+2) Запрос на обновление токенов
+POST запрос на URL + /api/token/refresh/
+В теле отправляется объект:
+    {"refresh" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NTc1NzMwNCwianRpIjoiNzc4Yjk2OTNhZWNmNGE1Nzg5NzA0MzQyOTYzYTAxZGEiLCJ1c2VyX2lkIjoxfQ.Nb2yAnYQgraJbmCYo5B9MARRYjdQJGu-chPmMTMYAbg"}
+В случае успешного ответа от сервера придет следующее сообщение, содержащее обновленные токены
+    {
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc1NjcyNzI3LCJqdGkiOiJjYTlkODM1YWE3YTg0NWRhYmVmYzdiNjE1ZjA4OWI3NiIsInVzZXJfaWQiOjF9.dYq7iMQgnO2QemdGPpE9J98C9opjP20i8f54MJFqQpM",
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3NTc1NzMyNywianRpIjoiNjE5ZDE1M2Y2YjQ4NDdmOWIzYWUxY2YzZjQzZTQ5NGEiLCJ1c2VyX2lkIjoxfQ.p1nS4r8cIxOC8j8Bv8Ug0CptdIJ27wDVg1ADw3i-S1Q"
+    }
+В случае отрицательного ответа:
+    {
+    "detail": "Токен недействителен или просрочен",
+    "code": "token_not_valid"
+    }
+3) Запрос на получение поставщиков, можно указать в параметрах какие поля выводить
+Get запрос на url /api/vendorlist/
+пример: http://192.168.6.168:8001/api/vendorlist/?fields=name,inn_kpp,bankname
+{
+    "name": "Бас-Тон, ООО",
+    "inn_kpp": "7014028986/701745001",
+    "bankname": "40702810004000046490, СИБИРСКИЙ Ф-Л ПАО \"ПРОМСВЯЗЬБАНК\""
+},
+Запрос на получение поставщиков с фильтром по юр.лицу
+    http://192.168.6.168:8001/api/vendorlist/?entityid=lir
+ {
+            "vendorid": "ИР-п-000002296",
+            "name": "Братья Коцоевы, ООО",
+            "urasticname": "ООО \"Братья Коцоевы\"",
+            "inn_kpp": "7018011824/701701001",
+            "directorname": "",
+            "urasticadress": "634034,Россия,Томская облТомск г,Белинского ул, д. 58 а",
+            "account": "40702810064000012854",
+            "bankname": "40702810064000012854 в ТОМСКОЕ ОТДЕЛЕНИЕ N8616 ПАО СБЕРБАНК",
+            "bankbik": "046902606",
+            "corraccount": "30101810800000000606",
+            "dirparty": 5637153430,
+            "entityid": "lir",
+            "entity_name": "ООО Инвест-Ресторация"
+        },
+Запрос на получение поставщиков с фильтром по нескольким юр лицам: http://192.168.6.168:8001/api/vendorlist/?entityid=lir&entity_id=arr
+Запрос на получение поставщиков с поиском: http://192.168.6.168:8001/api/vendorlist/?serch=Корабельникова
+4) Метод создания графика платежей 
+ path('create_graph/', create_graph, name='create-graph'),
+ передаем объект: 
+ {
+    "period": "Месяц",
+    "date_start": "2024-01-19",
+    "date_end": "2024-01-28",
+    "date_calc": "2024-01-27",
+    "status": "Рассчитано",
+    "sum_calc": 123.0,
+    "sum_bonus": 123.0,
+    "percent": 2,
+    "vendor_id": "ГМ-п-000002742",
+    "ku": "KY00003"
+}
+получаем: 
+{
+    "graph_id": 2,
+    "period": "Месяц",
+    "date_start": "2024-01-19",
+    "date_end": "2024-01-28",
+    "date_calc": "2024-01-27",
+    "status": "Рассчитано",
+    "sum_calc": 123.0,
+    "sum_bonus": 123.0,
+    "percent": 2,
+    "vendor_id": "ГМ-п-000002742",
+    "ku": "KY00003"
+}

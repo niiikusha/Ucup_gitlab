@@ -1,0 +1,60 @@
+image: alpine
+
+stages:
+  - build
+  - deploy
+#####################____TEST____######################
+#################____BUILD_TEST____####################
+build_test:
+  image: docker:dind
+  variables:
+    DOCKER_FILE: docker/app/Dockerfile
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: "tcp://docker:2375"
+    IMAGE_TAG: api-test
+  services:
+    - docker:dind
+  stage: build
+  before_script:
+    - docker login -u aak-gitlab -p $CI_JOB_TOKEN_CUR $CI_REGISTRY
+  script:
+    - dockerd &
+    - cp $ENV_TEST ./.env
+    - cp ./freeze.txt ./LAMA_ucup/freeze.txt
+    - docker build -t $IMAGE_TAG -f $DOCKER_FILE .
+    - docker tag $IMAGE_TAG $CI_REGISTRY_IMAGE:$IMAGE_TAG
+    - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
+  tags:
+    - build
+  # rules:
+  #  - if: $CI_COMMIT_BRANCH == $BRANCH_TEST
+  when: manual
+
+#################____DEPLOY_TEST____####################
+deploy_test:
+  stage: deploy
+  script:
+    - apk add --no-cache coreutils bash
+    - apk add --no-cache rsync openssh
+    - mkdir -p ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY_TEST_CURRENTSERVER" | tr -d '\r' | ssh-add -
+    - find . -type f -exec chmod 664 {} \;
+    - find . -type d -exec chmod 775 {} \;
+    # начало копирования данных для развертывания
+    - scp docker-compose-test.yml $CURRENTSERVER:$PROJECT_PATH_TEST/docker-compose.yml
+    - scp $ENV_TEST               $CURRENTSERVER:$PROJECT_PATH_TEST/.env
+    # окончание копирования
+    - ssh $CURRENTSERVER "docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN_CUR $CI_REGISTRY"
+    - ssh $CURRENTSERVER "cd $PROJECT_PATH_TEST && docker-compose pull"
+    - ssh $CURRENTSERVER "cd $PROJECT_PATH_TEST && docker-compose down" || true
+    - ssh $CURRENTSERVER "cd $PROJECT_PATH_TEST && docker-compose up --build -d"
+    - ssh $CURRENTSERVER "docker system prune -a -f"
+  tags:
+    - test_deploy
+  # rules:
+  #   - if: $CI_COMMIT_BRANCH == $BRANCH_TEST
+  when: manual
+
+

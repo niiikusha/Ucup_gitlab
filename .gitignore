@@ -1,0 +1,7 @@
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__
+.venv
+/LAMA_ucup/.env
