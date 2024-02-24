@@ -45,7 +45,8 @@ class IncludedInvoiceListView(generics.ListAPIView):
     permission_classes = [AllowAny]
     #serializer_class = IncludedProductsListSerializer
     serializer_class = VendDocSerializer
-
+    pagination_class = BasePagination
+    
     def get_queryset(self):
         queryset = IncludedProductsList.objects.all()
     
