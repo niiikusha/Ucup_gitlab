@@ -15,7 +15,8 @@ from django.db.models import Q
 import calendar
 import numpy as np
 from ..models import Entities, Ku
-    
+from django.db.models import OuterRef, Subquery
+
 class BasePagination(PageNumberPagination):
     page_size = 50  # Количество записей на странице
     page_size_query_param = 'page_size'
@@ -92,8 +93,10 @@ class BrandClassifierListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Brandclassifier.objects.all()
         queryset_Classifier = Classifier.objects.all()
+
         producer_name = self.request.query_params.get('producer_name', None)
         l4 = self.request.query_params.get('l4', None)
+
         if l4  is not None:
             queryset_Classifier = queryset_Classifier.filter(l4=l4)
             classifier_ids = queryset_Classifier.values_list('classifierid', flat=True)
@@ -368,8 +371,14 @@ class ProductsListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = Products.objects.all().order_by('itemid')
-
+        vendor_id = self.request.query_params.get('vendor_id', None)
         categories = self.request.query_params.getlist('categories_l4', [])
+
+        if vendor_id:
+            queryset_venddoclines = Venddoclines.objects.filter(docid__vendor_id=vendor_id)
+            product_ids = queryset_venddoclines.values_list('product_id', flat=True)
+            queryset = queryset.filter(itemid__in =  product_ids )
+
         if categories:
             queryset = queryset.filter(classifier__l4__in = categories)
 

@@ -134,7 +134,7 @@ class ProductsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Products
-        fields = ['itemid', 'name', 'brand_name', 'classifier_name', 'classifier', 'l4'] # 'classifier', 'brand'
+        fields = ['itemid', 'name', 'brand_name', 'classifier_name', 'classifier', 'l4', ] # 'classifier', 'brand'
 
     def get_brand_name(self, obj):
         try:
@@ -154,6 +154,7 @@ class ProductsSerializer(serializers.ModelSerializer):
         except Classifier.DoesNotExist:
             return None
 
+        
 class VendorsSerializer(serializers.ModelSerializer):
     entity_name = serializers.SerializerMethodField()
         
