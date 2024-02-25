@@ -236,8 +236,8 @@ class Products(models.Model):
 
 
 class Venddoc(models.Model):
-    vendor = models.ForeignKey('Vendors', models.DO_NOTHING, db_column='Vendor_id')  # Field name made lowercase.
-    entity = models.ForeignKey(Entities, models.DO_NOTHING, db_column='Entity_id')  # Field name made lowercase.
+    vendor_id = models.ForeignKey('Vendors', models.DO_NOTHING, db_column='Vendor_id')  # Field name made lowercase.
+    entity_id = models.ForeignKey(Entities, models.DO_NOTHING, db_column='Entity_id')  # Field name made lowercase.
     docid = models.CharField(db_column='DocID', primary_key=True)  # Field name made lowercase.
     doctype = models.CharField(db_column='DocType')  # Field name made lowercase.
     invoice_name = models.CharField(db_column='Invoice_name')  # Field name made lowercase.
