@@ -83,7 +83,7 @@ class KuGraphSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = KuGraph
-        fields = ['graph_id', 'ku_id', 'vendor_id', 'vendor_name', 'entity_id', 'entity_name', 'period', 'date_start', 'date_end', 'date_calc', 'status', 'sum_calc', 'sum_bonus', 'percent']
+        fields = ['sum_approved','graph_id', 'ku_id', 'vendor_id', 'vendor_name', 'entity_id', 'entity_name', 'period', 'date_start', 'date_end', 'date_calc', 'status', 'sum_calc', 'sum_bonus', 'percent']
     
 
     def get_vendor_name(self, obj):

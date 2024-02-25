@@ -93,7 +93,7 @@ class BrandClassifierListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Brandclassifier.objects.all()
         queryset_Classifier = Classifier.objects.all()
-
+        vendor_id = self.request.query_params.get('vendor_id', None)
         producer_name = self.request.query_params.get('producer_name', None)
         l4 = self.request.query_params.get('l4', None)
 
@@ -109,13 +109,61 @@ class BrandClassifierListView(generics.ListAPIView):
         if producer_name is not None:
             queryset = queryset.filter(producer_name=producer_name)
 
+        if vendor_id:
+            queryset_venddoclines = Venddoclines.objects.filter(docid__vendor_id=vendor_id)
+            product_ids = queryset_venddoclines.values_list('product_id', flat=True)
+
+            queryset_products = Products.objects.filter(itemid__in =  product_ids )
+            brand_ids = queryset_products.values_list('brand', flat=True)
+
+            queryset = queryset.filter(classifierid__in =  brand_ids )
+
         return queryset
 
 class ClassifierListView(generics.ListAPIView):
     permission_classes = [AllowAny] 
-    queryset = Classifier.objects.all() #данные которые будут возвращаться
+    
     serializer_class = ClassifierSerializer #обрабатывает queryset
     pagination_class = BasePagination
+
+    def get_queryset(self):
+        queryset = Classifier.objects.all() #данные которые будут возвращаться
+        vendor_id = self.request.query_params.get('vendor_id', None)
+
+        if vendor_id:
+            queryset_venddoclines = Venddoclines.objects.filter(docid__vendor_id=vendor_id)
+            product_ids = queryset_venddoclines.values_list('product_id', flat=True)
+
+            queryset_products = Products.objects.filter(itemid__in =  product_ids )
+            classifier_ids = queryset_products.values_list('classifier', flat=True)
+
+            queryset = queryset.filter(classifierid__in =  classifier_ids )
+
+        return queryset
+    
+    # def list(self, request, *args, **kwargs):
+    #     queryset = self.get_queryset()
+
+    #     # Список для хранения результата
+    #     result_list = []
+    #     current_id = 1
+    #     # Проходим по каждому объекту в queryset
+    #     for obj in queryset:
+    #         # Преобразуем объект в словарь, используя нужные поля
+    #         for i in range(2, 5):
+    #             obj_dict = {
+    #                 "id": current_id,
+    #                 "classifier_id": obj.classifierid,
+    #                 "classifier_code": getattr(obj, f"l{i}"),
+    #                 "name": getattr(obj, f"l{i}_name"),
+    #                 "parent_code": getattr(obj, f"l{i-1}"), # Используйте соответствующее поле для parent_code
+    #             }
+    #             current_id += 1
+    #             # Добавляем объект в результирующий список
+    #             result_list.append(obj_dict)
+
+    #     return Response(result_list)
+
 
 class VendorsNameFilterView(generics.ListAPIView): #фильтрация по юр лицу
     permission_classes = [AllowAny] 
