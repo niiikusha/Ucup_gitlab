@@ -88,7 +88,8 @@ class Entities(models.Model):
         db_table = 'Entities'
 
 class IncludedProducts(models.Model):
-    ku_id = models.CharField(db_column='KU_id', blank=True, null=True)  # Field name made lowercase.
+    #ku_id = models.CharField(db_column='KU_id', blank=True, null=True)  # Field name made lowercase.
+    ku_id = models.ForeignKey('Ku', models.DO_NOTHING, db_column='KU_id', blank=True, null=True)  # Field name made lowercase.
     item_type = models.CharField(db_column='Item_type', blank=True, null=True)  # Field name made lowercase.
     item_code = models.CharField(db_column='Item_code', blank=True, null=True)  # Field name made lowercase.
     item_name = models.CharField(db_column='Item_name', blank=True, null=True)  # Field name made lowercase.
@@ -284,41 +285,93 @@ class Venddoc(models.Model):
                     included_product.save()
         
                 
-    def products_amount_sum_in_range(self, start_date, end_date, vendor_id, entity_id):
+    # def products_amount_sum_in_range(self, start_date, end_date, vendor_id, entity_id):
+    #     """
+    #     Рассчитать сумму products_amount в указанном диапазоне дат и для указанных vendor_id и entity_id.
+    #     """
+    #     return (
+    #         Venddoc.objects
+    #         .filter(
+    #             vendor_id=vendor_id,
+    #             entity_id=entity_id,
+    #             invoice_date__gte=start_date,
+    #             invoice_date__lte=end_date
+    #         )
+    #         .aggregate(sum_products_amount=models.Sum('products_amount'))['sum_products_amount'] or 0
+    #     )
+    
+    def products_amount_sum_in_range(self, graph_id):
         """
-        Рассчитать сумму products_amount в указанном диапазоне дат и для указанных vendor_id и entity_id.
+        Рассчитать сумму Amount в указанном диапазоне дат и для указанных vendor_id, entity_id и graph_id.
         """
         return (
-            Venddoc.objects
+            IncludedProductsList.objects
             .filter(
-                vendor_id=vendor_id,
-                entity_id=entity_id,
-                invoice_date__gte=start_date,
-                invoice_date__lte=end_date
+                graph_id=graph_id,
+                # Дополнительные фильтры, если необходимо
+                # ...
             )
-            .aggregate(sum_products_amount=models.Sum('products_amount'))['sum_products_amount'] or 0
+            .aggregate(sum_amount=models.Sum('amount'))['sum_amount'] or 0
         )
-    
 
-    def products_amount_sum_in_range_vse(self, start_date, end_date, vendor_id, entity_id):
+    def products_amount_sum_in_range_vse(self, start_date, end_date, vendor_id, entity_id, graph_id):
         """
-        Рассчитать сумму products_amount в указанном диапазоне дат и для указанных vendor_id и entity_id.
+        Найти строки накладных, которые подходят по условиям
         """
-        venddoc_rows = Venddoc.objects.filter( # Найти строки в Venddoc, соответствующие условиям
+        graph_instance = KuGraph.objects.get(graph_id=graph_id)
+        included_condition_list = IncludedProducts.objects.filter(ku_id=graph_instance.ku_id)
+        included_condition_item_code = IncludedProducts.objects.filter(ku_id=graph_instance.ku_id)
+       
+        venddoc_rows = Venddoc.objects.filter(
             vendor_id=vendor_id,
             entity_id=entity_id,
             invoice_date__gte=start_date,
             invoice_date__lte=end_date
         )
-        # venddoclines_rows = []
-        venddoclines_rows = Venddoclines.objects.filter(docid__in=venddoc_rows.values_list('docid', flat=True)).values()
-    
-        # for venddoc_row in venddoc_rows:
-        # # Найти все соответствующие строки в Venddoclines
-        #     #venddoclines_rows = Venddoclines.objects.filter(docid=venddoc_row.docid)
-        #     venddoclines_rows.extend(Venddoclines.objects.filter(docid=venddoc_row.docid).values())
+
+        #print('included_condition_list ', included_condition_list)
+        included_condition_list_all = included_condition_list.filter(item_type="Все")
+        included_condition_list_table= included_condition_list.filter(item_type="Таблица")
+        included_condition_list_category = included_condition_list.filter(item_type="Категория")
+
+        
+        table_item_codes = included_condition_list_table.values_list('item_code', flat=True)
+
+        category_item_codes = included_condition_list_category.values_list('item_code', flat=True) #берем коды в условиях типа Категория
+        category_item_codes = list(category_item_codes)
+        
+        category_classifiers = Classifier.objects.filter(l4__in=category_item_codes) #фильтруем Категории по тем которые даны в условиях
+        products_category = Products.objects.filter(classifier__in=category_classifiers) #фильтруем продукты по категориям которые получили выше
+        products_itemid_list =  products_category.values_list('itemid', flat=True) #получаем список подходящих продуктов под условия типа Категория
+
+        docids = venddoc_rows.values_list('docid', flat=True)
+
+        if included_condition_list_all:
+            venddoclines_rows = Venddoclines.objects.filter(docid__in=venddoc_rows.values_list('docid', flat=True)).values()
+            return venddoclines_rows
+
+        elif included_condition_list_table and included_condition_list_category:
+            venddoclines_rows_table = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes).values()
+            print('venddoclines_rows_table ', venddoclines_rows_table )
+
+            venddoclines_rows_category = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
+            print('venddoclines_rows_category ', venddoclines_rows_category )
+            # venddoclines_rows = venddoclines_rows_table.intersection(venddoclines_rows_category)
+            venddoclines_rows = venddoclines_rows_table.filter(product_id__in = products_itemid_list)
+            print(' venddoclines_rows', venddoclines_rows)
+            return venddoclines_rows
+
+        elif included_condition_list_table:
+            venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes).values()
+
+        elif included_condition_list_category:
+            venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
+
+        
+
         print('venddoclines_rows', venddoclines_rows)
         return venddoclines_rows
+    
             #self.save_venddoclines_to_included_products(venddoclines_rows)
     
         # Итерировать по всем найденным строкам в Venddoclines

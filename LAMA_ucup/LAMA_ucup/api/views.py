@@ -451,10 +451,13 @@ class ProductsListView(generics.ListAPIView):
 @permission_classes([AllowAny])
 def create_graph(request):
     input_data = JSONParser().parse(request)
-
+    graph_exists = input_data.get('graph_exists')
+    # if graph_exists == True:
+    #     return Response({'error': 'График с указанным ku_id уже существует'}, status=status.HTTP_400_BAD_REQUEST)
     # Получите данные от пользователя
     ku_id = input_data.get('ku_id')
     period = input_data.get('period')
+    
     date_start = input_data.get('date_start')
     date_end_initial = input_data.get('date_end')
     if input_data.get('date_actual'):
@@ -535,8 +538,12 @@ def create_graph(request):
         
             if month <= 6:
                 date_end = f"{year}-{6:02d}-{30:02d}" # до конца июня
+                date_calc= f"{year}-{7:02d}-{15:02d}" # до конца июня
+                month = 7
             else:
-                date_end = f"{year}-{12:02d}-{31:02d}"   #до конца декабря     #ян1 фр2 март3 апр4 май5 июнь6 / июль август сентярб отябрь ноябрь декабрь
+                date_end = f"{year}-{12:02d}-{31:02d}"   #до конца декабря  
+                date_calc =  f"{year+1}-{1:02d}-{15:02d}" # до конца июня
+                month = 1
 
             if date_end > date_end_initial: #проверка последнего графика 
                 date_end = date_end_initial
@@ -544,16 +551,17 @@ def create_graph(request):
             graph_data_list.append({
                 'date_start': date_start,
                 'date_end': date_end,
-                'date_calc': f"{next_month_year}-{next_month:02d}-01",
+                'date_calc': date_calc,
             })
 
             # Переходите к следующему месяцу
             if month <= 6:
+                year += 1
                 date_start = f"{year}-{1:02d}-{1:02d}" #с начала января
             else:
                 date_start = f"{year}-{7:02d}-{1:02d}" #с начала июля
 
-            year += 1
+            
         
     if period == 'Квартал':
         
@@ -586,16 +594,16 @@ def create_graph(request):
         start_date = date_range['date_start']
         end_date = date_range['date_end']
         # Рассчитать sum_calc, используя метод products_amount_sum_in_range
-        sum_calc = Venddoc().products_amount_sum_in_range(start_date, end_date, vendor_id, entity_id)
-        sum_bonus = sum_calc * percent / 100
+        #sum_calc = Venddoc().products_amount_sum_in_range(start_date, end_date, vendor_id, entity_id)
+        #sum_bonus = sum_calc * percent / 100
         
         if sum_calc:
             date_range['status'] = 'Рассчитано'
         else:
             date_range['status'] = 'Запланировано'
 
-        date_range['sum_calc'] = sum_calc
-        date_range['sum_bonus'] = sum_bonus
+        # date_range['sum_calc'] = sum_calc
+        # date_range['sum_bonus'] = sum_bonus
 
         date_range['percent'] = input_data.get('percent')
         date_range['ku_id'] = input_data.get('ku_id')
@@ -625,10 +633,40 @@ def create_graph(request):
         graph_id = serializer_instance.data['graph_id']
         start_date = serializer_instance.data['date_start']
         end_date = serializer_instance.data['date_end']
-        venddoclines_rows = Venddoc().products_amount_sum_in_range_vse(start_date, end_date, vendor_id, entity_id)
+        
+        venddoclines_rows = Venddoc().products_amount_sum_in_range_vse(start_date, end_date, vendor_id, entity_id, graph_id)
         print(venddoclines_rows)
         Venddoc().save_venddoclines_to_included_products(venddoclines_rows, graph_id)
+        graph_instance = KuGraph.objects.get(graph_id=graph_id)
+        sum_calc = Venddoc().products_amount_sum_in_range(graph_id)
+        sum_bonus = sum_calc * percent / 100
+        graph_instance.sum_calc = sum_calc
+        graph_instance.sum_bonus = sum_bonus
+        graph_instance.status = 'Рассчитано' if sum_calc else 'Запланировано'
+        graph_instance.save()
+       # Обновить данные в созданном экземпляре модели
+    #     serializer_instance.sum_calc = sum_calc
+    #     serializer_instance.sum_bonus = sum_bonus
+    #     serializer_instance.status = 'Рассчитано' if sum_calc else 'Запланировано'
 
+    #     # Сохранить обновленный экземпляр
+    #     serializer_instance.save()
+    #         # serializer_instances.append(serializer_instance)
+    # for data in graph_data_list:
+    #     serializer_instance = KuGraphSerializer(data=data)
+    #     graph_instance = KuGraph.objects.get(graph_id)
+    #     print('serializer_instance ', serializer_instance )
+    #     sum_calc = Venddoc().products_amount_sum_in_range(graph_id)
+    #     sum_bonus = sum_calc * percent / 100
+        
+    #     # if sum_calc:
+    #     #     data['status'] = 'Рассчитано'
+    #     # else:
+    #     #     data['status'] = 'Запланировано'
+
+    #     data['sum_calc'] = sum_calc
+    #     data['sum_bonus'] = sum_bonus
+    #     serializer_instance.save()
     # Верните успешный ответ с данными созданных объектов
     data = [serializer_instance.data for serializer_instance in serializer_instances]
     #ids = [item['id'] for item in data]
