@@ -626,7 +626,7 @@ def create_graph(request):
         start_date = serializer_instance.data['date_start']
         end_date = serializer_instance.data['date_end']
         venddoclines_rows = Venddoc().products_amount_sum_in_range_vse(start_date, end_date, vendor_id, entity_id)
-        
+        print(venddoclines_rows)
         Venddoc().save_venddoclines_to_included_products(venddoclines_rows, graph_id)
 
     # Верните успешный ответ с данными созданных объектов

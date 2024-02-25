@@ -259,18 +259,28 @@ class Venddoc(models.Model):
         """
         if venddoclines_rows is not None:
             for venddoclines_row in venddoclines_rows:
+                    product_id_id = venddoclines_row.get('product_id_id')
+                    recid = venddoclines_row.get('recid')
+            # Получите экземпляр Products по идентификатору
+                    product_instance = Products.objects.get(itemid=product_id_id)
+                    rec_id_instance = Venddoclines.objects.get(recid=recid)
+            
                     included_product = IncludedProductsList(
-                        product_id = venddoclines_row.get('product_id'),
-                        invoice_id = venddoclines_row.get('docid'),
+                        #product_id = venddoclines_row.get(product_id_id),
+                        product_id=product_instance,
+                        invoice_id = venddoclines_row.get('docid_id'),
                         amount = venddoclines_row.get('amount'),
                         graph_id = graph_id,
-                        rec_id =  venddoclines_row.get('rec_id')
+                        rec_id =  rec_id_instance,
+                        #rec_id =  venddoclines_row.get(recid),
 
+                        #rec_id =  venddoclines_row.recid,
                         # product_id=venddoclines_row.product_id,
-                        # invoice_id=venddoclines_row.docid,
+                        #invoice_id=venddoclines_row.docid,
                         # amount=venddoclines_row.amount,
                         # graph_id=graph_id
-                    )
+                        )
+                    print('invoice_id', venddoclines_row.get('docid'))
                     included_product.save()
         
                 
