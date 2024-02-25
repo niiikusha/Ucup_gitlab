@@ -37,13 +37,17 @@ class IncludedProductsListSerializer(serializers.ModelSerializer):
 
     def get_category_name(self, obj):
         try:
-           return obj.product_id.classifier.l4_name if obj.product_id.classifier else None
+            return obj.product_id.classifier.l4_name if obj.product_id and obj.product_id.classifier else None
+        except AttributeError:
+            return None
         except Entities.DoesNotExist:
             return None
         
     def get_producer_name(self, obj):
         try:
-            return obj.product_id.brand.brand_name if obj.product_id.brand else None
+            return obj.product_id.brand.brand_name if obj.product_id and obj.product_id.brand else None
+        except AttributeError:
+            return None
         except Entities.DoesNotExist:
             return None
 
@@ -83,7 +87,7 @@ class KuGraphSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = KuGraph
-        fields = ['sum_approved','graph_id', 'ku_id', 'vendor_id', 'vendor_name', 'entity_id', 'entity_name', 'period', 'date_start', 'date_end', 'date_calc', 'status', 'sum_calc', 'sum_bonus', 'percent']
+        fields = ['sum_approved', 'graph_id', 'ku_id', 'vendor_id', 'vendor_name', 'entity_id', 'entity_name', 'period', 'date_start', 'date_end', 'date_calc', 'status', 'sum_calc', 'sum_bonus', 'percent']
     
 
     def get_vendor_name(self, obj):

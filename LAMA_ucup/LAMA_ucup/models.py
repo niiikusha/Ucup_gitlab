@@ -322,7 +322,8 @@ class Venddoc(models.Model):
 class Venddoclines(models.Model):
     recid = models.BigIntegerField(db_column='RecId', primary_key=True)  # Field name made lowercase.
     docid = models.ForeignKey(Venddoc, models.DO_NOTHING, db_column='DocID', blank=True, null=True)  # Field name made lowercase.
-    product_id = models.CharField(db_column='Product_id')  # Field name made lowercase.
+    # product_id = models.CharField(db_column='Product_id')  # Field name made lowercase.
+    product_id = models.ForeignKey(Products, models.DO_NOTHING, db_column='Product_id')  # Field name made lowercase.
     qty = models.FloatField(db_column='QTY')  # Field name made lowercase.
     amount = models.FloatField(db_column='Amount')  # Field name made lowercase.
     amountvat = models.FloatField(db_column='AmountVAT')  # Field name made lowercase.

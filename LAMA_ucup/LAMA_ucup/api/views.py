@@ -33,13 +33,13 @@ class IncludedProductsListView(generics.ListAPIView):
     pagination_class = BasePagination
     
     def get_queryset(self):
-        queryset = IncludedProductsList.objects.all()
+        queryset = IncludedProductsList.objects.all().order_by('graph_id')
         graph_id = self.request.query_params.get('graph_id', None)
 
         if graph_id:
             queryset = queryset.filter(graph_id=graph_id)
 
-        return queryset
+        return queryset.order_by('graph_id')
 
 
 class IncludedInvoiceListView(generics.ListAPIView):
@@ -372,7 +372,7 @@ class GraphListView(generics.ListCreateAPIView, generics.DestroyAPIView):
     def get_queryset(self):
         queryset = KuGraph.objects.all().order_by('graph_id')
         vendor_id = self.request.query_params.get('vendor_id', None)
-        ku_id = self.request.query_params.get('ku_id', None)
+        ku_ids = self.request.query_params.getlist('ku_id', [])
         period =self.request.query_params.get('period', None)
         status =self.request.query_params.get('status', None)
         date_start =self.request.query_params.get('date_start', None)
@@ -381,8 +381,8 @@ class GraphListView(generics.ListCreateAPIView, generics.DestroyAPIView):
         if vendor_id is not None:
             queryset = queryset.filter(vendor_id=vendor_id)
 
-        if ku_id is not None:
-            queryset = queryset.filter(ku_id=ku_id)
+        if ku_ids:
+            queryset = queryset.filter(ku_id__in=ku_ids)
 
         if period is not None:
             queryset = queryset.filter(period=period)
