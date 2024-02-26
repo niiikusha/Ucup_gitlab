@@ -23,6 +23,7 @@ app_name = 'LAMA_ucup'
 
 urlpatterns = [
     path('classifiersTest/', ClassifierTestList.as_view()),
+    path('classifiers_tree/',ClassifierListView.as_view()),
 
     path('entitieslist/', EntitiesListView.as_view()),
 

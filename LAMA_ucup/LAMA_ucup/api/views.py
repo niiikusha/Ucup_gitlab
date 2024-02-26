@@ -141,28 +141,28 @@ class ClassifierListView(generics.ListAPIView):
 
         return queryset
     
-    # def list(self, request, *args, **kwargs):
-    #     queryset = self.get_queryset()
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
 
-    #     # Список для хранения результата
-    #     result_list = []
-    #     current_id = 1
-    #     # Проходим по каждому объекту в queryset
-    #     for obj in queryset:
-    #         # Преобразуем объект в словарь, используя нужные поля
-    #         for i in range(2, 5):
-    #             obj_dict = {
-    #                 "id": current_id,
-    #                 "classifier_id": obj.classifierid,
-    #                 "classifier_code": getattr(obj, f"l{i}"),
-    #                 "name": getattr(obj, f"l{i}_name"),
-    #                 "parent_code": getattr(obj, f"l{i-1}"), # Используйте соответствующее поле для parent_code
-    #             }
-    #             current_id += 1
-    #             # Добавляем объект в результирующий список
-    #             result_list.append(obj_dict)
+        # Список для хранения результата
+        result_list = []
+        current_id = 1
+        # Проходим по каждому объекту в queryset
+        for obj in queryset:
+            # Преобразуем объект в словарь, используя нужные поля
+            for i in range(2, 5):
+                obj_dict = {
+                    "id": current_id,
+                    "classifier_id": obj.classifierid,
+                    "classifier_code": getattr(obj, f"l{i}"),
+                    "name": getattr(obj, f"l{i}_name"),
+                    "parent_code": getattr(obj, f"l{i-1}"), # Используйте соответствующее поле для parent_code
+                }
+                current_id += 1
+                # Добавляем объект в результирующий список
+                result_list.append(obj_dict)
 
-    #     return Response(result_list)
+        return Response(result_list)
 
 
 class VendorsNameFilterView(generics.ListAPIView): #фильтрация по юр лицу
@@ -452,8 +452,8 @@ class ProductsListView(generics.ListAPIView):
 def create_graph(request):
     input_data = JSONParser().parse(request)
     graph_exists = input_data.get('graph_exists')
-    # if graph_exists == True:
-    #     return Response({'error': 'График с указанным ku_id уже существует'}, status=status.HTTP_400_BAD_REQUEST)
+    if graph_exists == True:
+        return Response({'error': 'График с указанным ku_id уже существует'}, status=status.HTTP_400_BAD_REQUEST)
     # Получите данные от пользователя
     ku_id = input_data.get('ku_id')
     period = input_data.get('period')
