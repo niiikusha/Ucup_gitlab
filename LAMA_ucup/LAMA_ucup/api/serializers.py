@@ -34,22 +34,33 @@ class IncludedProductsListSerializer(serializers.ModelSerializer):
         except Entities.DoesNotExist:
             return None
         
-
     def get_category_name(self, obj):
         try:
-            return obj.product_id.classifier.l4_name if obj.product_id and obj.product_id.classifier else None
-        except AttributeError:
-            return None
+            return getattr(obj.product_id, 'classifier', None).l4_name if obj.product_id else None
         except Entities.DoesNotExist:
             return None
         
     def get_producer_name(self, obj):
         try:
-            return obj.product_id.brand.brand_name if obj.product_id and obj.product_id.brand else None
-        except AttributeError:
-            return None
+            return getattr(getattr(obj.product_id, 'brand', None), 'brand_name', None) if obj.product_id else None
         except Entities.DoesNotExist:
             return None
+
+    # def get_category_name(self, obj):
+    #     try:
+    #         return obj.product_id.classifier.l4_name if obj.product_id and obj.product_id.classifier else None
+    #     except AttributeError:
+    #         return None
+    #     except Entities.DoesNotExist:
+    #         return None
+        
+    # def get_producer_name(self, obj):
+    #     try:
+    #         return obj.product_id.brand.brand_name if obj.product_id and obj.product_id.brand else None
+    #     except AttributeError:
+    #         return None
+    #     except Entities.DoesNotExist:
+    #         return None
 
    
 

@@ -22,8 +22,8 @@ from .views import *
 app_name = 'LAMA_ucup'
 
 urlpatterns = [
-    path('classifiersTest/', ClassifierTestList.as_view()),
-    path('classifiers_tree/',ClassifierListView.as_view()),
+    path('classifiersTest/', ClassifierTest.as_view()),
+    path('classifiers_tree/',ClassifierTreeView.as_view()),
 
     path('entitieslist/', EntitiesListView.as_view()),
 
@@ -52,7 +52,7 @@ urlpatterns = [
     path('vendorfilter/', VendorsNameFilterView.as_view()),
     #path('vendorlist1', VendorsListView.as_view()),
     
-    path('classifierlist',  ClassifierListView.as_view()),
+    path('classifierlist/',  ClassifierListView.as_view()),
     path('brandlist/', BrandClassifierListView.as_view()),
 
     path('me/', me_view),
