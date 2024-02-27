@@ -180,29 +180,29 @@ class Ku(models.Model):
     graph_exists = models.BooleanField(db_column='graph_Exists', blank=True, null=True)  # Field name made lowercase.
     # ku = models.BigAutoField(db_column='Ku')  # Field name made lowercase.
     # ku_id = models.CharField(db_column='Ku_id', primary_key=True)  # Field name made lowercase.
-    _count = 0  # Статическая переменная
+    # _count = 0  # Статическая переменная
 
     class Meta:
         
         db_table = 'KU'
 
-    def save(self, *args, **kwargs): #создание id КУ
-        if not self.ku_id:
-            if Ku.objects.order_by('-ku_id').first():
-                latest_ku = Ku.objects.order_by('-ku_id').first()
-                ku_int = int(latest_ku.ku_id[2:])
-                Ku._count = ku_int + 1
-            else:
-                Ku._count = 1
-            self.ku_id = f'KY{Ku._count:05}'
+    # def save(self, *args, **kwargs): #создание id КУ
+    #     if not self.ku_id:
+    #         if Ku.objects.order_by('-ku_id').first():
+    #             latest_ku = Ku.objects.order_by('-ku_id').first()
+    #             ku_int = int(latest_ku.ku_id[2:])
+    #             Ku._count = ku_int + 1
+    #         else:
+    #             Ku._count = 1
+    #         self.ku_id = f'KY{Ku._count:05}'
         
-        if not self.date_end or self.date_end > self.date_start + relativedelta(years=2): #проверка даты окончания
-            self.date_actual = self.date_start + relativedelta(years=2)
+    #     if not self.date_end or self.date_end > self.date_start + relativedelta(years=2): #проверка даты окончания
+    #         self.date_actual = self.date_start + relativedelta(years=2)
 
-        if self.date_end < self.date_start:
-            raise ValidationError("Дата окончания не должна быть раньше даты начала")
+    #     if self.date_end < self.date_start:
+    #         raise ValidationError("Дата окончания не должна быть раньше даты начала")
         
-        super().save(*args, **kwargs)
+    #     super().save(*args, **kwargs)
 
 
 class KuGraph(models.Model):

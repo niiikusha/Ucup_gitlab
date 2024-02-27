@@ -16,6 +16,9 @@ import calendar
 import numpy as np
 from ..models import Entities, Ku
 from django.db.models import OuterRef, Subquery
+from ..kuProcessing import KuProcessing
+
+
 
 class BasePagination(PageNumberPagination):
     page_size = 50  # Количество записей на странице
@@ -302,9 +305,13 @@ class KuListView(generics.ListCreateAPIView):
     serializer_class = KuSerializer #обрабатывает queryset
     pagination_class = BasePagination
 
-    def perform_create(self, serializer):
-        # Вызвать метод save у сериализатора для создания экземпляра Ku
-        instance = serializer.save()
+    # def perform_create(self, serializer):
+    #     # Вызываем функцию generate_ku_id перед сохранением экземпляра
+    #     print('SERIALIZER.validated_data', serializer.validated_data)
+    #     ku_processing = KuProcessing()
+    #     ku_processing.create_ku(serializer.validated_data)
+        
+    #     serializer.save()
 
     def get_queryset(self):
         queryset = Ku.objects.all().order_by('ku_id')
@@ -347,7 +354,30 @@ class KuListView(generics.ListCreateAPIView):
             print(f"Error in queryset filtering: {e}")
         return queryset.order_by('-ku_id')
     
-        
+@api_view(['POST'])
+def create_ku(request):
+    if request.method == 'POST':
+        response_data = {}
+
+        data = JSONParser().parse(request)
+
+        vendor_id = data.get('vendor_id')
+        entity_id = data.get('entity_id')
+        period = data.get('period')
+        date_start = data.get('date_start')
+        date_end = data.get('date_end', None)
+        status_ku = data.get('status', None)
+        date_actual = data.get('date_actual', None)
+        percent  = data.get('percent', None)
+        graph_exists = data.get('graph_exists', None)
+
+        try:
+            ku_processing = KuProcessing()
+            return ku_processing.create_ku(vendor_id, entity_id, period, date_start, status_ku, date_end, date_actual, percent, graph_exists)
+        except Exception as ex:
+            response_data['status'] = 'false'
+            response_data['message'] = 'Непредвиденная ошибка при создании пользователя: ' + ex.args[0]
+            return JsonResponse(response_data, status=status.HTTP_409_CONFLICT)
     
 
 class KuAPIUpdate(generics.RetrieveUpdateAPIView):
