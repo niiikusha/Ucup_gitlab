@@ -144,9 +144,13 @@ class ClassifierTreeView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
+        # Множество для хранения уникальных значений classifier_code и parent_code
+        unique_values_set = set()
+
         # Список для хранения результата
         result_list = []
         current_id = 1
+
         # Проходим по каждому объекту в queryset
         for obj in queryset:
             # Преобразуем объект в словарь, используя нужные поля
@@ -156,12 +160,15 @@ class ClassifierTreeView(generics.ListAPIView):
                     "classifier_id": obj.classifierid,
                     "classifier_code": str(getattr(obj, f"l{i}")),
                     "name": str(getattr(obj, f"l{i}_name")),
-                    "parent_code": "0" if i == 1 else str(getattr(obj, f"l{i-1}")), # Используйте соответствующее поле для parent_code
+                    "parent_code": "0" if i == 1 else str(getattr(obj, f"l{i-1}")),
                 }
-                current_id += 1
-                # Добавляем объект в результирующий список
-                
-                result_list.append(obj_dict)
+
+                # Проверяем, не существует ли уже такой элемент
+                key = (obj_dict["classifier_code"], obj_dict["parent_code"])
+                if key not in unique_values_set:
+                    current_id += 1
+                    result_list.append(obj_dict)
+                    unique_values_set.add(key)
 
         return Response(result_list)
 
@@ -301,26 +308,6 @@ class KuListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Ku.objects.all().order_by('ku_id')
-        # requirements_param = self.request.query_params.getlist('requirements', None)
-        # requirements_mass = self.request.query_params.getlist('requirements', [])
-        # requirements_string = self.request.query_params.get('requirements', None)
-        # print('requirements_param', requirements_param)
-        # print('requirements_mass', requirements_mass)
-        # print('requirements_string', requirements_string)
-        # if requirements_param:
-        #     try:
-        #         requirements = json.loads(requirements_param)
-        #         print('requirement', requirements)
-        #         if requirements.get('type_item') == 'Все':
-        #             # Если тип товара 'Все', игнорируем фильтры по отдельным параметрам
-        #             return queryset.order_by('-ku_id')
-
-        #         # ... (ваш текущий код поиска и фильтрации)
-
-        #     except json.JSONDecodeError as e:
-        #         print(f"Error decoding JSON: {e}")
-            
-        
         ku_ids = self.request.query_params.getlist('ku_id', [])
         entity_ids = self.request.query_params.getlist('entity_id', [])
         vendor_id = self.request.query_params.get('vendor_id', None)
@@ -461,11 +448,6 @@ class ProductsListView(generics.ListAPIView):
             print(f"Error in queryset filtering: {e}")
         
         return queryset
-
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def create_IncludedProduct(request):
-#     input_data = JSONParser().parse(request)
 
 
 @api_view(['POST'])
