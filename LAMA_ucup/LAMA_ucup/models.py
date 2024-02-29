@@ -100,17 +100,6 @@ class IncludedProducts(models.Model):
     class Meta:
         db_table = 'Included_products'
 
-# class IncludedProductsList(models.Model):
-#     graph_id = models.BigIntegerField(db_column='Graph_id', primary_key=True)  # Field name made lowercase. The composite primary key (Graph_id, Product_id) found, that is not supported. The first column is selected.
-#     product_id = models.CharField(db_column='Product_id')  # Field name made lowercase.
-#     invoice_id = models.CharField(db_column='Invoice_id', blank=True, null=True)  # Field name made lowercase.
-#     amount = models.FloatField(db_column='Amount', blank=True, null=True)  # Field name made lowercase.
-
-#     class Meta:
-        
-#         db_table = 'Included_products_list'
-#         unique_together = (('graph_id', 'product_id'),)
-
 
 class IncludedProductsList(models.Model):
     graph_id = models.BigIntegerField(db_column='Graph_id', blank=True, null=True)  # Field name made lowercase.
