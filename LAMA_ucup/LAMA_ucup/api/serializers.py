@@ -128,13 +128,13 @@ class KuGraphSerializer(serializers.ModelSerializer):
     def get_entity_name(self, obj):
         try:
             return obj.vendor_id.entity_id.name if obj.vendor_id else None
-        except Vendors.DoesNotExist:
+        except Entities.DoesNotExist:
             return None
         
     def get_entity_id(self, obj):
         try:
             return obj.vendor_id.entity_id.entity_id if obj.vendor_id else None
-        except Vendors.DoesNotExist:
+        except Entities.DoesNotExist:
             return None
         
 

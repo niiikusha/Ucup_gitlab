@@ -167,7 +167,6 @@ class Vendors(models.Model):
 
 class Ku(models.Model):
     ku_id = models.CharField(db_column='Ku_id', primary_key=True, editable=False)  # Field name made lowercase.
-    #ku_id = models.BigAutoField(db_column='KU_id', primary_key=True)  # Field name made lowercase.
     vendor_id = models.ForeignKey('Vendors', models.DO_NOTHING, db_column='Vendor_id')  # Field name made lowercase. 
     entity_id = models.ForeignKey(Entities, models.DO_NOTHING, db_column='Entity_id')  # Field name made lowercase.
     period = models.CharField(db_column='Period', max_length=10)  # Field name made lowercase.
@@ -178,38 +177,17 @@ class Ku(models.Model):
     base = models.FloatField(db_column='Base', blank=True, null=True)  # Field name made lowercase.
     percent = models.IntegerField(db_column='Percent', blank=True, null=True)  # Field name made lowercase.
     graph_exists = models.BooleanField(db_column='graph_Exists', blank=True, null=True)  # Field name made lowercase.
-    # ku = models.BigAutoField(db_column='Ku')  # Field name made lowercase.
-    # ku_id = models.CharField(db_column='Ku_id', primary_key=True)  # Field name made lowercase.
-    # _count = 0  # Статическая переменная
 
     class Meta:
         
         db_table = 'KU'
 
-    # def save(self, *args, **kwargs): #создание id КУ
-    #     if not self.ku_id:
-    #         if Ku.objects.order_by('-ku_id').first():
-    #             latest_ku = Ku.objects.order_by('-ku_id').first()
-    #             ku_int = int(latest_ku.ku_id[2:])
-    #             Ku._count = ku_int + 1
-    #         else:
-    #             Ku._count = 1
-    #         self.ku_id = f'KY{Ku._count:05}'
-        
-    #     if not self.date_end or self.date_end > self.date_start + relativedelta(years=2): #проверка даты окончания
-    #         self.date_actual = self.date_start + relativedelta(years=2)
-
-    #     if self.date_end < self.date_start:
-    #         raise ValidationError("Дата окончания не должна быть раньше даты начала")
-        
-    #     super().save(*args, **kwargs)
 
 
 class KuGraph(models.Model):
     graph_id = models.AutoField(db_column='Graph_id', primary_key=True)  # Используем AutoField для автоматического заполнения  # Field name made lowercase.
     vendor_id = models.ForeignKey('Vendors', models.DO_NOTHING, db_column='Vendor_id')  # Field name made lowercase.
     ku_id = models.ForeignKey(Ku, models.DO_NOTHING, db_column='Ku_id')  # Field name made lowercase.
-    #ku_id = models.ForeignKey(Ku, models.DO_NOTHING, db_column='Ku_id')  # Field name made lowercase.
     period = models.CharField(db_column='Period', max_length=10)  # Field name made lowercase.
     date_start = models.DateField(db_column='Date_start')  # Field name made lowercase.
     date_end = models.DateField(db_column='Date_end')  # Field name made lowercase.
@@ -267,38 +245,14 @@ class Venddoc(models.Model):
                     rec_id_instance = Venddoclines.objects.get(recid=recid)
             
                     included_product = IncludedProductsList(
-                        #product_id = venddoclines_row.get(product_id_id),
                         product_id=product_instance,
                         invoice_id = venddoclines_row.get('docid_id'),
                         amount = venddoclines_row.get('amount'),
                         graph_id = graph_id,
                         rec_id =  rec_id_instance,
-                        #rec_id =  venddoclines_row.get(recid),
-
-                        #rec_id =  venddoclines_row.recid,
-                        # product_id=venddoclines_row.product_id,
-                        #invoice_id=venddoclines_row.docid,
-                        # amount=venddoclines_row.amount,
-                        # graph_id=graph_id
-                        )
+                    )
                     print('invoice_id', venddoclines_row.get('docid'))
                     included_product.save()
-        
-                
-    # def products_amount_sum_in_range(self, start_date, end_date, vendor_id, entity_id):
-    #     """
-    #     Рассчитать сумму products_amount в указанном диапазоне дат и для указанных vendor_id и entity_id.
-    #     """
-    #     return (
-    #         Venddoc.objects
-    #         .filter(
-    #             vendor_id=vendor_id,
-    #             entity_id=entity_id,
-    #             invoice_date__gte=start_date,
-    #             invoice_date__lte=end_date
-    #         )
-    #         .aggregate(sum_products_amount=models.Sum('products_amount'))['sum_products_amount'] or 0
-    #     )
     
     def products_amount_sum_in_range(self, graph_id):
         """
@@ -308,8 +262,6 @@ class Venddoc(models.Model):
             IncludedProductsList.objects
             .filter(
                 graph_id=graph_id,
-                # Дополнительные фильтры, если необходимо
-                # ...
             )
             .aggregate(sum_amount=models.Sum('amount'))['sum_amount'] or 0
         )
@@ -329,7 +281,6 @@ class Venddoc(models.Model):
             invoice_date__lte=end_date
         )
 
-        #print('included_condition_list ', included_condition_list)
         included_condition_list_all = included_condition_list.filter(item_type="Все")
         included_condition_list_table= included_condition_list.filter(item_type="Таблица")
         included_condition_list_category = included_condition_list.filter(item_type="Категория")
@@ -356,7 +307,6 @@ class Venddoc(models.Model):
 
             venddoclines_rows_category = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
             print('venddoclines_rows_category ', venddoclines_rows_category )
-            # venddoclines_rows = venddoclines_rows_table.intersection(venddoclines_rows_category)
             venddoclines_rows = venddoclines_rows_table.filter(product_id__in = products_itemid_list)
             print(' venddoclines_rows', venddoclines_rows)
             return venddoclines_rows
@@ -372,20 +322,11 @@ class Venddoc(models.Model):
         print('venddoclines_rows', venddoclines_rows)
         return venddoclines_rows
     
-            #self.save_venddoclines_to_included_products(venddoclines_rows)
-    
-        # Итерировать по всем найденным строкам в Venddoclines
-        #     for venddoclines_row in venddoclines_rows:
-        #         # Добавить значение amount к общей базе
-        #         total_base += venddoclines_row.amount
-        # # Установить значение base равным общей базе
-        # self.base = total_base
-        # self.save()
+           
 
 class Venddoclines(models.Model):
     recid = models.BigIntegerField(db_column='RecId', primary_key=True)  # Field name made lowercase.
     docid = models.ForeignKey(Venddoc, models.DO_NOTHING, db_column='DocID', blank=True, null=True)  # Field name made lowercase.
-    # product_id = models.CharField(db_column='Product_id')  # Field name made lowercase.
     product_id = models.ForeignKey(Products, models.DO_NOTHING, db_column='Product_id')  # Field name made lowercase.
     qty = models.FloatField(db_column='QTY')  # Field name made lowercase.
     amount = models.FloatField(db_column='Amount')  # Field name made lowercase.

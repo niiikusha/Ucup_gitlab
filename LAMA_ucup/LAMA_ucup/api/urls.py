@@ -33,7 +33,7 @@ urlpatterns = [
     path('kulist/', KuListView.as_view()),
     path('ku/<str:pk>/', KuAPIUpdate.as_view()),
     path('kudetail/<str:pk>/', KuDetailView.as_view()),
-    path('ku_create/', ku_create),
+    path('create_ku/', create_ku, name='create_ku'),
 
     path('included_condition_create/', included_products_create),  
     path('included_conditions_list/', IncludedСonditionListView.as_view()),  
@@ -42,6 +42,7 @@ urlpatterns = [
     path('graphlist/', GraphListView.as_view()), 
     path('graphdetail/<int:pk>/', GraphDetailView.as_view()),
     path('create_graph/', create_graph, name='create-graph'),
+    path('create_graph_new/', create_graph_new, name='create-graph-new'),
 
     path('productslist/', ProductsListView.as_view()),
     path('productsfilter', products_filter, name ='products_filter'),
@@ -50,7 +51,6 @@ urlpatterns = [
 
     path('vendorlist/', VendorsListViewSet.as_view(actions={'get': 'list'}), name='vendor-list'),
     path('vendorfilter/', VendorsNameFilterView.as_view()),
-    #path('vendorlist1', VendorsListView.as_view()),
     
     path('classifierlist/',  ClassifierListView.as_view()),
     path('brandlist/', BrandClassifierListView.as_view()),

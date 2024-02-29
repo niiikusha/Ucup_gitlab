@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./LAMA_ucup/LAMA_ucup"
+    ]
+}

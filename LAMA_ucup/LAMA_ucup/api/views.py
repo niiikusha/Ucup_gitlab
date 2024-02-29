@@ -16,7 +16,9 @@ import calendar
 import numpy as np
 from ..models import Entities, Ku
 from django.db.models import OuterRef, Subquery
+from ..graphProcessing import GraphProcessing
 from ..kuProcessing import KuProcessing
+
 
 
 
@@ -355,6 +357,7 @@ class KuListView(generics.ListCreateAPIView):
         return queryset.order_by('-ku_id')
     
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def create_ku(request):
     if request.method == 'POST':
         response_data = {}
@@ -370,13 +373,13 @@ def create_ku(request):
         date_actual = data.get('date_actual', None)
         percent  = data.get('percent', None)
         graph_exists = data.get('graph_exists', None)
-
+        
         try:
             ku_processing = KuProcessing()
             return ku_processing.create_ku(vendor_id, entity_id, period, date_start, status_ku, date_end, date_actual, percent, graph_exists)
         except Exception as ex:
             response_data['status'] = 'false'
-            response_data['message'] = 'Непредвиденная ошибка при создании пользователя: ' + ex.args[0]
+            response_data['message'] = 'Непредвиденная ошибка при создании ку: ' + ex.args[0]
             return JsonResponse(response_data, status=status.HTTP_409_CONFLICT)
     
 
@@ -479,6 +482,15 @@ class ProductsListView(generics.ListAPIView):
         
         return queryset
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_graph_new(request):
+    try:
+        graph_processing = GraphProcessing()
+        return graph_processing.create_graph(request)
+    except Exception as ex:
+        response_data = {'error': 'Непредвиденная ошибка при создании графика: ' + ex.args[0]}
+        return JsonResponse(response_data, status=status.HTTP_409_CONFLICT)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -677,45 +689,12 @@ def create_graph(request):
         graph_instance.sum_bonus = sum_bonus
         graph_instance.status = 'Рассчитано' if sum_calc else 'Запланировано'
         graph_instance.save()
-       # Обновить данные в созданном экземпляре модели
-    #     serializer_instance.sum_calc = sum_calc
-    #     serializer_instance.sum_bonus = sum_bonus
-    #     serializer_instance.status = 'Рассчитано' if sum_calc else 'Запланировано'
-
-    #     # Сохранить обновленный экземпляр
-    #     serializer_instance.save()
-    #         # serializer_instances.append(serializer_instance)
-    # for data in graph_data_list:
-    #     serializer_instance = KuGraphSerializer(data=data)
-    #     graph_instance = KuGraph.objects.get(graph_id)
-    #     print('serializer_instance ', serializer_instance )
-    #     sum_calc = Venddoc().products_amount_sum_in_range(graph_id)
-    #     sum_bonus = sum_calc * percent / 100
-        
-    #     # if sum_calc:
-    #     #     data['status'] = 'Рассчитано'
-    #     # else:
-    #     #     data['status'] = 'Запланировано'
-
-    #     data['sum_calc'] = sum_calc
-    #     data['sum_bonus'] = sum_bonus
-    #     serializer_instance.save()
-    # Верните успешный ответ с данными созданных объектов
+    
     data = [serializer_instance.data for serializer_instance in serializer_instances]
-    #ids = [item['id'] for item in data]
+   
     return JsonResponse(data, status=status.HTTP_201_CREATED, safe=False)
 
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def included_products_create(request):
-#     included_products_data = JSONParser().parse(request)
-#     serializer = IncludedProductsSerializer(data=included_products_data)
-    
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class IncludedСonditionListView(generics.ListAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
@@ -792,17 +771,6 @@ def included_products_create(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def ku_create(request):
-    ku_data = JSONParser().parse(request)
-    serializer = KuSerializer(data=ku_data)
-    
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def products_filter(request): 
@@ -832,15 +800,5 @@ def user_info(request):
     data = JSONParser().parse(request)
     login = data.get('login', None)
     response_data = {}
-    # try:
-    #     user_processing = UserProcessing()
-    #     return login
-    # except Exception as ex:
-    #     response_data['error'] = 'Непредвиденная ошибка: ' + ex.args[0]
-    #     return JsonResponse(response_data, status=status.HTTP_409_CONFLICT)
 
-# class ProductsListView(generics.ListAPIView):
-#     permission_classes = [AllowAny] 
-#     queryset = Products.objects.all() #данные которые будут возвращаться
-#     serializer_class = ProductsSerializer #обрабатывает queryset
     
