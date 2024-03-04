@@ -53,7 +53,7 @@ class IncludedProductsListSerializer(serializers.ModelSerializer):
             return None
         except Products.DoesNotExist:
             return None
-        except Brandclassifier.DoesNotExist:
+        except BrandClassifier.DoesNotExist:
             return None
         
     def get_brand_name(self, obj):
@@ -63,7 +63,7 @@ class IncludedProductsListSerializer(serializers.ModelSerializer):
             return None
         except Products.DoesNotExist:
             return None
-        except Brandclassifier.DoesNotExist:
+        except BrandClassifier.DoesNotExist:
             return None
         
     # def get_category_name(self, obj):
@@ -147,8 +147,8 @@ class BrandClassifierSerializer(serializers.ModelSerializer):
   
 
     class Meta:
-        model = Brandclassifier
-        fields = ['classifierid', 'brand_name', 'producer_name']
+        model = BrandClassifier
+        fields = ['id', 'brand_name', 'producer_name']
 
  
 
@@ -156,7 +156,7 @@ class ClassifierSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Classifier
-        fields = ['classifierid', 'l1', 'l1_name', 'l2', 'l2_name', 'l3', 'l3_name', 'l4', 'l4_name'] 
+        fields = ['id', 'l1', 'l1_name', 'l2', 'l2_name', 'l3', 'l3_name', 'l4', 'l4_name'] 
     
 
 
@@ -172,7 +172,7 @@ class ProductsSerializer(serializers.ModelSerializer):
     def get_brand_name(self, obj):
         try:
             return obj.brand.brand_name if obj.brand else None
-        except Brandclassifier.DoesNotExist:
+        except BrandClassifier.DoesNotExist:
             return None
 
     def get_classifier_name(self, obj):
