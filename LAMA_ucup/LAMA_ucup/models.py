@@ -148,20 +148,45 @@ class Vendor(models.Model):
     def __str__(self):
         return self.external_code
 
-
 class Ku(models.Model):
+    statusKu = ( 
+        ('Create', 'Создано')
+        ('Valid', 'Действует')
+        ('Сancel', 'Отменено')
+        ('Сlose', 'Закрыто')
+    ) 
+    kuType =  ( 
+        ('RetroBonus', 'Ретро-бонус'),
+        ('Service', 'Услуга')
+    )
+    payMethod = ( 
+        ('Mutual', 'Взаиморасчет'),
+        ('Payment', 'Оплата')
+    )
     ku_id = models.CharField('Ku_id', primary_key=True, editable=False)  
-    vendor_id = models.ForeignKey('Vendors',on_delete=models.CASCADE,  db_constraint=False, verbose_name='Номер накладной') 
-    entity_id = models.ForeignKey(Entity,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Номер накладной', blank=True, null = True)
-    period = models.CharField(db_column='Period', max_length=10)  
-    date_start = models.DateField(db_column='Date_start')  
-    date_end = models.DateField(db_column='Date_end', blank=True, null=True)  
-    status = models.CharField(db_column='Status', max_length=20)  
-    date_actual = models.DateField(db_column='Date_actual', blank=True, null=True)  
-    base = models.FloatField(db_column='Base', blank=True, null=True)  
-    percent = models.IntegerField(db_column='Percent', blank=True, null=True)  
-    graph_exists = models.BooleanField(db_column='graph_Exists', blank=True, null=True)  
-
+    vendor_key = models.ForeignKey(Vendor,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Поставщик') 
+    entity_key = models.ForeignKey(Entity,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Юр. лицо')
+    period = models.CharField('Период', max_length=10)  
+    date_start = models.DateField('Дата начала')  
+    date_end = models.DateField('Дата окончания', blank=True, null=True)   
+    date_actual = models.DateField('Актуальная дата', blank=True, null=True)  
+    percent = models.IntegerField('Процент', blank=True, null=True) 
+    status_ku = models.CharField(choices=statusKu,  verbose_name='Статус ку', default='Create') 
+    graph_exists = models.BooleanField('Существование графика', blank=True, null=True)  
+    description = models.CharField('Описание', blank=True, null=True)
+    contract = models.CharField('Контракт', blank=True, null=True)
+    product_type = models.CharField('Тип продукта', blank=True, null=True)
+    docu_account = models.CharField('Номер счета в договоре', blank=True, null=True)
+    docu_name =  models.CharField('Название договора', blank=True, null=True)
+    docu_number = models.CharField('Номер договора', blank=True, null=True)
+    docu_date = models.DateField('Дата договора', blank=True, null=True)
+    docu_subject = models.CharField('Предмет договора', blank=True, null=True)
+    tax = models.BooleanField('Налог', blank=True, null=True)
+    exclude_return = models.BooleanField('Исключать возвраты', blank=True, null=True)
+    negative_turnover =  models.BooleanField('Отрицательный товарооборот', blank=True, null=True)
+    ku_type = models.CharField(choices=kuType ,  verbose_name='Тип КУ', default='RetroBonus') 
+    pay_method  = models.CharField(choices=payMethod ,  verbose_name='Способ оплаты', default='Mutual') 
+   
     class Meta:
         
         db_table = 'KU'
@@ -169,17 +194,19 @@ class Ku(models.Model):
     def __str__(self):
         return self.ku_id
 
-
-
 class KuGraph(models.Model):
-    graph_id = models.AutoField(db_column='Graph_id', primary_key=True)  # Используем AutoField для автоматического заполнения  
-    vendor_id = models.ForeignKey('Vendors', models.DO_NOTHING, db_column='Vendor_id')  
-    ku_id = models.ForeignKey(Ku, models.DO_NOTHING, db_column='Ku_id')  
-    period = models.CharField(db_column='Period', max_length=10)  
-    date_start = models.DateField(db_column='Date_start')  
-    date_end = models.DateField(db_column='Date_end')  
-    date_calc = models.DateField(db_column='Date_calc')  
-    status = models.CharField(db_column='Status', max_length=20)  
+    statusGraph = ( 
+        ('Planned', 'Запланировано')
+        ('Calculated', 'Рассчитано')
+        ('Approved', 'Утверждено')
+    ) 
+    vendor_key = models.ForeignKey(Vendor,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Поставщик')  
+    ku_key = models.ForeignKey(Ku,on_delete=models.CASCADE,  db_constraint=False, verbose_name='КУ')   
+    period = models.CharField('Период', max_length=10)  
+    date_start = models.DateField('Дата начала')  
+    date_end = models.DateField('Дата окончания')  
+    date_calc = models.DateField('Дата расчета')  
+    status_graph = models.CharField(choices=statusGraph, verbose_name='Статус графика', default='Planned')   
     sum_calc = models.FloatField(db_column='Sum_calc', blank=True, null=True)  
     sum_bonus = models.FloatField(db_column='Sum_bonus', blank=True, null=True)  
     percent = models.IntegerField(db_column='Percent', blank=True, null=True)  
@@ -190,11 +217,11 @@ class KuGraph(models.Model):
         db_table = 'KU_graph'
 
 
-class Products(models.Model):
-    itemid = models.CharField(db_column='itemId', primary_key=True)  
-    classifier_key = models.ForeignKey(Classifier, models.DO_NOTHING, db_column='Classifier_id', blank=True, null=True)  
-    brand = models.ForeignKey(BrandClassifier, models.DO_NOTHING, db_column='Brand_id', blank=True, null=True)  
-    name = models.CharField(db_column='Name', blank=True, null=True)  
+class Product(models.Model):
+    external_code = models.CharField('Внешний код продукта')  
+    classifier_key = models.ForeignKey(Classifier, on_delete=models.CASCADE,  db_constraint=False, verbose_name='Категория', blank=True, null=True)  
+    brand_key = models.ForeignKey(BrandClassifier, on_delete=models.CASCADE,  db_constraint=False, verbose_name='Бренд', blank=True, null=True)  
+    name = models.CharField('Название продукта', blank=True, null=True)  
 
     class Meta:
         
@@ -202,8 +229,8 @@ class Products(models.Model):
 
 
 class Venddoc(models.Model):
-    vendor_id = models.ForeignKey('Vendors', models.DO_NOTHING, db_column='Vendor_id')  
-    entity_id = models.ForeignKey(Entities, models.DO_NOTHING, db_column='Entity_id')  
+    vendor_id = models.ForeignKey(Vendor, models.DO_NOTHING, db_column='Vendor_id')  
+    entity_id = models.ForeignKey(Entity, models.DO_NOTHING, db_column='Entity_id')  
     docid = models.CharField(db_column='DocID', primary_key=True)  
     doctype = models.CharField(db_column='DocType')  
     invoice_name = models.CharField(db_column='Invoice_name')  
