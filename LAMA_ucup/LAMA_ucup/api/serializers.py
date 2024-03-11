@@ -9,7 +9,7 @@ class ClassifierTestSerializer(serializers.ModelSerializer):
 
 class IncludedProductSerializer(serializers.ModelSerializer):
     class Meta:
-        model = IncludedProduct
+        model = IncludedCondition
         fields = '__all__'
 
 class IncludedProductListSerializer(serializers.ModelSerializer):
@@ -20,14 +20,14 @@ class IncludedProductListSerializer(serializers.ModelSerializer):
     brand_name = serializers.SerializerMethodField()
 
     class Meta:
-        model = IncludedProductList
+        model = IncludedProduct
         fields = ['graph_key', 'product_key', 'amount', 'invoice_id', 'inc_prod_list', 'product_qty',
                    'product_name' ,'category_name', 'producer_name', 'rec_key', 'brand_name']
 
     def get_product_qty(self, obj):
         try:
             return obj.rec_key.qty if obj.rec_key else None
-        except Venddocline.DoesNotExist:
+        except VendDocLine.DoesNotExist:
             return None
         
     def get_product_name(self, obj):
@@ -202,7 +202,7 @@ class VendDocSerializer(serializers.ModelSerializer):
     vendor_name = serializers.SerializerMethodField()
 
     class Meta:
-        model = Venddoc
+        model = VendDoc
         fields = ['invoice_id','vendor_key', 'vendor_name', 'entity_key', 'entity_name','doc_id', 'doc_type', 'invoice_name', 'invoice_number',
                   'invoice_date', 'purch_number', 'purch_date', 'invoice_status', 'products_amount']
         
@@ -223,7 +223,7 @@ class VendDocSerializer(serializers.ModelSerializer):
 
 class VendDocLinesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Venddocline
+        model = VendDocLine
         fields = '__all__'
         
 # class ProductsSerializer(serializers.ModelSerializer):

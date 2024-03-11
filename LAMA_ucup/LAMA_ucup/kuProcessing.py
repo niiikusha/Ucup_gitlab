@@ -1,6 +1,6 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from .models import Ku, Vendors, Entities
+from .models import Ku, Vendor, Entity
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from rest_framework import status
@@ -30,17 +30,17 @@ class KuProcessing:
         if date_end and date_end < date_start:
             raise ValidationError("Дата окончания не должна быть раньше даты начала")
         
-        vendor = Vendors.objects.get(vendor_id=vendor_id)
-        entity = Entities.objects.get(entity_id=entity_id)
+        vendor = Vendor.objects.get(pk=vendor_id)
+        entity = Entity.objects.get(pk=entity_id)
 
         ku = Ku.objects.create(
             ku_id=ku_id,
-            vendor_id=vendor,
-            entity_id=entity,
+            vendor_key=vendor,
+            entity_key=entity,
             period=period,
             date_start=date_start,
             date_end=date_end,
-            status=status_ku,
+            status_ku=status_ku,
             date_actual=date_actual,
             percent=percent,
             graph_exists=graph_exists

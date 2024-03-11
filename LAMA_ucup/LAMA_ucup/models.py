@@ -25,23 +25,23 @@ class ClassifierTest(models.Model):
     def __str__(self):
         return f"Код классификатора: {self.classifier_code}, Имя: {self.name}, Код родителя: {self.parent_code}"
     
-class Article(models.Model):
-    name = models.CharField(blank=True, null=True)
-    id = models.CharField(primary_key=True)
+# class Article(models.Model):
+#     name = models.CharField(blank=True, null=True)
+#     id = models.CharField(primary_key=True)
 
-    class Meta:
+#     class Meta:
         
-        db_table = 'Article'
+#         db_table = 'Article'
 
 
-class Assortment(models.Model):
-    product_id = models.CharField(db_column='Product_Id', blank=True, null=True)  
-    vendor_id = models.CharField(db_column='Vendor_Id', blank=True, null=True)  
-    entity_id = models.CharField(db_column='Entity_Id', blank=True, null=True)  
+# class Assortment(models.Model):
+#     product_id = models.CharField(db_column='Product_Id', blank=True, null=True)  
+#     vendor_id = models.CharField(db_column='Vendor_Id', blank=True, null=True)  
+#     entity_id = models.CharField(db_column='Entity_Id', blank=True, null=True)  
 
-    class Meta:
+#     class Meta:
        
-        db_table = 'Assortment'
+#         db_table = 'Assortment'
 
 
 class BrandClassifier(models.Model):
@@ -51,7 +51,7 @@ class BrandClassifier(models.Model):
 
     class Meta:
         
-        db_table = 'BrandClassifier'
+        db_table = 'brand_classifier'
 
     def __str__(self):
         return self.brand_name
@@ -70,7 +70,7 @@ class Classifier(models.Model):
 
     class Meta:
         
-        db_table = 'Classifier'
+        db_table = 'classifier'
 
     def __str__(self):
         return self.l4_name
@@ -91,29 +91,29 @@ class Entity(models.Model):
 
     class Meta:
         
-        db_table = "Entity"
+        db_table = "entity"
 
     def __str__(self):
         return self.entity_id
 
 
-class IncludedProduct(models.Model):  
+class IncludedCondition(models.Model):  
     ku_key = models.ForeignKey('Ku', on_delete=models.CASCADE,  db_constraint=False, verbose_name='КУ', blank=True)  #сделать ключи для бренда и продюсера и продукта
-    item_type = models.CharField(db_column='Item_type', blank=True, null=True)  
-    item_code = models.CharField(db_column='Item_code', blank=True, null=True)  
-    item_name = models.CharField(db_column='Item_name', blank=True, null=True)   
-    brand = models.CharField(db_column='Brand', blank=True, null=True)  
-    producer = models.CharField(db_column='Producer', blank=True, null=True)  
+    item_type = models.CharField('item_type', blank=True, null=True)  
+    item_code = models.CharField('item_code', blank=True, null=True)  
+    item_name = models.CharField('item_name', blank=True, null=True)   
+    brand = models.CharField('brand', blank=True, null=True)  
+    producer = models.CharField('producer', blank=True, null=True)  
 
     class Meta:
-        db_table = 'Included_product'
+        db_table = 'included_condition'
     
     def __str__(self):
         return self.item_code
 
 
-class IncludedProductList(models.Model):
-    inc_prod_list = models.BigAutoField(db_column='Inc_prod_list', primary_key=True)
+class IncludedProduct(models.Model):
+    # inc_prod_list = models.BigAutoField('Inc_prod_list', primary_key=True)
     graph_key = models.ForeignKey('KuGraph',  on_delete=models.CASCADE,  db_constraint=False, verbose_name='Номер графика', blank=True, null=True)  
     product_key = models.ForeignKey('Product', on_delete=models.CASCADE,  db_constraint=False, verbose_name='Код продукта', blank=True, null=True)  
     rec_key = models.ForeignKey('Venddocline', on_delete=models.CASCADE,  db_constraint=False, verbose_name='Номер накладной', blank=True, null = True) 
@@ -122,14 +122,14 @@ class IncludedProductList(models.Model):
 
     class Meta:
 
-        db_table = 'Included_product_list'
+        db_table = 'included_product'
     
     def __str__(self):
         return self.product_key
 
 class Vendor(models.Model):
     external_code = models.CharField('Внешний код поставщика', max_length=20)  
-    entity_key = models.ForeignKey(Entity, models.DO_NOTHING, on_delete=models.CASCADE,  db_constraint=False, verbose_name='Номер юр. лица', blank=True, null = True) 
+    entity_key = models.ForeignKey(Entity, on_delete=models.CASCADE,  db_constraint=False, verbose_name='Номер юр. лица', blank=True, null = True) 
     name = models.CharField('Имя поставщика', max_length=100, blank=True, null=True)  
     urastic_name = models.CharField('Полное имя', max_length=100, blank=True, null=True)  
     inn_kpp = models.CharField('INN/KPP', max_length=121, blank=True, null=True)  
@@ -143,17 +143,17 @@ class Vendor(models.Model):
 
     class Meta:
         
-        db_table = 'Vendor'
+        db_table = 'vendor'
 
     def __str__(self):
         return self.external_code
 
 class Ku(models.Model):
     statusKu = ( 
-        ('Create', 'Создано')
-        ('Valid', 'Действует')
-        ('Сancel', 'Отменено')
-        ('Сlose', 'Закрыто')
+        ('Create', 'Создано'),
+        ('Valid', 'Действует'),
+        ('Сancel', 'Отменено'),
+        ('Сlose', 'Закрыто'),
     ) 
     kuType =  ( 
         ('RetroBonus', 'Ретро-бонус'),
@@ -189,16 +189,16 @@ class Ku(models.Model):
    
     class Meta:
         
-        db_table = 'KU'
+        db_table = 'ku'
 
     def __str__(self):
         return self.ku_id
 
 class KuGraph(models.Model):
     statusGraph = ( 
-        ('Planned', 'Запланировано')
-        ('Calculated', 'Рассчитано')
-        ('Approved', 'Утверждено')
+        ('Planned', 'Запланировано'),
+        ('Calculated', 'Рассчитано'),
+        ('Approved', 'Утверждено'),
     ) 
     vendor_key = models.ForeignKey(Vendor,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Поставщик')  
     ku_key = models.ForeignKey(Ku,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Коммерческое условие')   
@@ -214,7 +214,7 @@ class KuGraph(models.Model):
 
     class Meta:
         
-        db_table = 'KU_graph'
+        db_table = 'graph_ku'
 
 
 class Product(models.Model):
@@ -225,10 +225,10 @@ class Product(models.Model):
 
     class Meta:
         
-        db_table = 'Product'
+        db_table = 'product'
 
 
-class Venddoc(models.Model):
+class VendDoc(models.Model):
     vendor_key = models.ForeignKey(Vendor, models.DO_NOTHING, db_constraint=False, verbose_name='Поставщик')  
     entity_key = models.ForeignKey(Entity, models.DO_NOTHING, db_constraint=False, verbose_name='Юр лицо')  
     doc_id = models.CharField('Doc_id', primary_key=True)  
@@ -244,7 +244,7 @@ class Venddoc(models.Model):
     
     class Meta:
        
-        db_table = 'VendDoc'
+        db_table = 'vend_doc'
 
     # def save_venddoclines_to_included_products(self, venddoclines_rows, graph_id):
     #     """
@@ -338,9 +338,9 @@ class Venddoc(models.Model):
     
            
 
-class Venddocline(models.Model):
+class VendDocLine(models.Model):
     rec_id = models.BigIntegerField(db_column='RecId', primary_key=True)  
-    doc_key = models.ForeignKey(Venddoc, models.DO_NOTHING, db_constraint=False, verbose_name='Накладная', blank=True, null=True)  
+    doc_key = models.ForeignKey(VendDoc, models.DO_NOTHING, db_constraint=False, verbose_name='Накладная', blank=True, null=True)  
     product_key = models.ForeignKey(Product, models.DO_NOTHING,  db_constraint=False, verbose_name='Продукт')  
     qty = models.FloatField('QTY')  
     amount = models.FloatField('Amount')  
@@ -351,7 +351,7 @@ class Venddocline(models.Model):
 
     class Meta:
         
-        db_table = 'VendDocLine'
+        db_table = 'vend_doc_line'
 
 
 

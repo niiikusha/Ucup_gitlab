@@ -1,19 +1,18 @@
 from django.contrib import admin
 from .models import *
 
-admin.site.register(Entities)
+admin.site.register(Entity)
 admin.site.register(AuthUser)
-admin.site.register(Vendors)
-admin.site.register(Products)
+admin.site.register(Vendor)
+admin.site.register(Product)
 admin.site.register(ClassifierTest)
-admin.site.register(Brandclassifier)
+admin.site.register(BrandClassifier)
 admin.site.register(Classifier)
-admin.site.register(IncludedProducts)
-admin.site.register(IncludedProductsList)
-admin.site.register(Invoices)
+admin.site.register(IncludedCondition)
+admin.site.register(IncludedProduct)
 admin.site.register(Ku)
 admin.site.register(KuGraph)
-admin.site.register(Venddoc)
-admin.site.register(Venddoclines)
+admin.site.register(VendDoc)
+admin.site.register(VendDocLine)
 
 # Register your models here.

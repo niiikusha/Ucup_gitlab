@@ -1,7 +1,7 @@
 import calendar
 
 from LAMA_ucup.api.serializers import KuGraphSerializer
-from .models import Ku, KuGraph, Venddoc
+from .models import Ku, KuGraph, VendDoc
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -151,16 +151,16 @@ class GraphProcessing:
             start_date = date_range['date_start']
             end_date = date_range['date_end']
             
-            if sum_calc:
-                date_range['status'] = 'Рассчитано'
-            else:
-                date_range['status'] = 'Запланировано'
+            # if sum_calc:
+            #     date_range['status_graph'] = 'Рассчитано'
+            # else:
+            #     date_range['status_graph'] = 'Запланировано'
 
             date_range['percent'] = input_data.get('percent')
-            date_range['ku_id'] = input_data.get('ku_id')
-            date_range['vendor_id'] = input_data.get('vendor_id')
+            date_range['ku_key'] = input_data.get('ku_id')
+            date_range['vendor_key'] = input_data.get('vendor_id')
             date_range['period'] = input_data.get('period')
-            date_range['entity_id'] = input_data.get('entity_id')
+            date_range['entity_key'] = input_data.get('entity_id')
         
         # Создайте экземпляры сериализаторов и сохраните их
         serializer_instances = []
@@ -180,20 +180,20 @@ class GraphProcessing:
             ku_instance.save()
         
         for serializer_instance in serializer_instances:
-            graph_id = serializer_instance.data['graph_id']
+            graph = serializer_instance.data['id']
             start_date = serializer_instance.data['date_start']
             end_date = serializer_instance.data['date_end']
             
             venddoc_processing = VenddocProcessing
-            venddoclines_rows = venddoc_processing.products_amount_sum_in_range_vse(start_date, end_date, vendor_id, entity_id, graph_id)
-            venddoc_processing.save_venddoclines_to_included_products(venddoclines_rows, graph_id)
+            venddoclines_rows = venddoc_processing.products_amount_sum_in_range_vse(start_date, end_date, vendor_id, entity_id, graph)
+            venddoc_processing.save_venddoclines_to_included_products(venddoclines_rows, graph)
 
-            graph_instance = KuGraph.objects.get(graph_id=graph_id)
-            sum_calc = venddoc_processing.products_amount_sum_in_range(graph_id)
+            graph_instance = KuGraph.objects.get(pk=graph)
+            sum_calc = venddoc_processing.products_amount_sum_in_range(graph)
             sum_bonus = sum_calc * percent / 100
             graph_instance.sum_calc = sum_calc
             graph_instance.sum_bonus = sum_bonus
-            graph_instance.status = 'Рассчитано' if sum_calc else 'Запланировано'
+            graph_instance.status_graph = 'Рассчитано' if sum_calc else 'Запланировано'
             graph_instance.save()
         
         data = [serializer_instance.data for serializer_instance in serializer_instances]

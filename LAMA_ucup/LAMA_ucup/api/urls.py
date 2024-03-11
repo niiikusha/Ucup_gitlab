@@ -25,35 +25,35 @@ urlpatterns = [
     path('classifiersTest/', ClassifierTestList.as_view()),
     path('classifiers_tree/',ClassifierTreeView.as_view()),
 
-    path('entitieslist/', EntityListView.as_view()),
+    path('entitiy_list/', EntityListView.as_view()),
 
     path('included_product_list/', IncludedProductListView.as_view()),
     path('included_invoice_list/', IncludedInvoiceListView.as_view()),
 
-    path('kulist/', KuListView.as_view()),
+    path('ku_list/', KuListView.as_view()),
     path('ku/<str:pk>/', KuAPIUpdate.as_view()),
-    path('kudetail/<str:pk>/', KuDetailView.as_view()),
+    path('ku_detail/<str:pk>/', KuDetailView.as_view()),
     path('ku_create/', create_ku, name='ku_create'),
 
-    path('included_condition_create/', included_products_create),  
-    path('included_conditions_list/', IncludedСonditionListView.as_view()),  
+    path('included_condition_create/', included_product_create),  
+    path('included_condition_list/', IncludedСonditionListView.as_view()),  
     path('included_condition_detail/<int:pk>/', IncludedProductsView.as_view()),
 
-    path('graphlist/', GraphListView.as_view()), 
-    path('graphdetail/<int:pk>/', GraphDetailView.as_view()),
+    path('graph_list/', GraphListView.as_view()), 
+    path('graph_detail/<int:pk>/', GraphDetailView.as_view()),
     path('graph_create/', create_graph_new, name='create-graph'),
     path('create_graph_new/', create_graph_new, name='create-graph-new'),
 
-    path('productslist/', ProductsListView.as_view()),
-    path('productsfilter', products_filter, name ='products_filter'),
+    path('product_list/', ProductsListView.as_view()),
+    path('product_filter/', products_filter, name ='products_filter'),
 
-    path('venddoclist/', VendDocListView.as_view()),
+    path('vend_doc_list/', VendDocListView.as_view()),
 
-    path('vendorlist/', VendorsListViewSet.as_view(actions={'get': 'list'}), name='vendor-list'),
-    path('vendorfilter/', VendorsNameFilterView.as_view()),
+    path('vendor_list/', VendorsListViewSet.as_view(actions={'get': 'list'}), name='vendor-list'),
+    path('vendor_filter/', VendorsNameFilterView.as_view()),
     
-    path('classifierlist/',  ClassifierListView.as_view()),
-    path('brandlist/', BrandClassifierListView.as_view()),
+    path('classifier_list/',  ClassifierListView.as_view()),
+    path('brand_list/', BrandClassifierListView.as_view()),
 
     path('me/', me_view),
 ]

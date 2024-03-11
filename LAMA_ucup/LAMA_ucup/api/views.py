@@ -14,7 +14,7 @@ from rest_framework.parsers import JSONParser
 from django.db.models import Q
 import calendar
 import numpy as np
-from ..models import Entities, Ku
+from ..models import Entity, Ku
 from django.db.models import OuterRef, Subquery
 from ..graphProcessing import GraphProcessing
 from ..kuProcessing import KuProcessing
@@ -38,7 +38,7 @@ class IncludedProductListView(generics.ListAPIView):
     pagination_class = BasePagination
     
     def get_queryset(self):
-        queryset = IncludedProductList.objects.all().order_by('graph_key')
+        queryset = IncludedProduct.objects.all().order_by('graph_key')
         graph_id = self.request.query_params.get('graph_id', None)
 
         if graph_id:
@@ -53,13 +53,13 @@ class IncludedInvoiceListView(generics.ListAPIView):
     pagination_class = BasePagination
     
     def get_queryset(self):
-        queryset = IncludedProductList.objects.all()
+        queryset = IncludedProduct.objects.all()
         graph_id = self.request.query_params.get('graph_id', None)
 
         if graph_id:
             queryset = queryset.filter(graph_key=graph_id)
             
-        queryset_venddoc = Venddoc.objects.all().order_by('vendor_key')
+        queryset_venddoc = VendDoc.objects.all().order_by('vendor_key')
         doc_id_list = queryset.values_list('invoice_id', flat=True)
         queryset_venddoc = queryset_venddoc.filter(doc_id__in=doc_id_list)
 
@@ -109,7 +109,7 @@ class BrandClassifierListView(generics.ListAPIView):
             queryset = queryset.filter(producer_name=producer_name)
 
         if vendor_id:
-            queryset_venddoclines = Venddocline.objects.filter(doc_id__vendor_key=vendor_id)
+            queryset_venddoclines = VendDocLine.objects.filter(doc_id__vendor_key=vendor_id)
             product_ids = queryset_venddoclines.values_list('product_key', flat=True)
 
             queryset_products = Product.objects.filter(external_code__in =  product_ids )
@@ -130,7 +130,7 @@ class ClassifierTreeView(generics.ListAPIView):
         vendor_id = self.request.query_params.get('vendor_id', None)
 
         if vendor_id:
-            queryset_venddoclines = Venddocline.objects.filter(doc_id__vendor_key=vendor_id)
+            queryset_venddoclines = VendDocLine.objects.filter(doc_id__vendor_key=vendor_id)
             product_ids = queryset_venddoclines.values_list('product_key', flat=True)
 
             queryset_products = Product.objects.filter(external_code__in =  product_ids )
@@ -182,7 +182,7 @@ class ClassifierListView(generics.ListAPIView):
         vendor_id = self.request.query_params.get('vendor_id', None)
 
         if vendor_id:
-            queryset_venddoclines = Venddocline.objects.filter(doc_id__vendor_key=vendor_id)
+            queryset_venddoclines = VendDocLine.objects.filter(doc_id__vendor_key=vendor_id)
             product_ids = queryset_venddoclines.values_list('product_key', flat=True)
 
             queryset_products = Product.objects.filter(external_code__in =  product_ids )
@@ -215,7 +215,7 @@ class VendDocListView(generics.ListAPIView):
     pagination_class = BasePagination
 
     def get_queryset(self):
-        queryset = Venddoc.objects.all().order_by('vendor_key')
+        queryset = VendDoc.objects.all().order_by('vendor_key')
 
         entity_ids = self.request.query_params.getlist('entity_id', [])
         vendor_id = self.request.query_params.get('vendor_id', None)
@@ -435,27 +435,27 @@ class GraphDetailView(generics.RetrieveUpdateDestroyAPIView): #добавлен�
 
 class ProductsListView(generics.ListAPIView):
     permission_classes = [AllowAny] 
-    queryset = Products.objects.all() #данные которые будут возвращаться
-    serializer_class = ProductsSerializer #обрабатывает queryset
+    queryset = Product.objects.all() #данные которые будут возвращаться
+    serializer_class = ProductSerializer #обрабатывает queryset
     pagination_class = BasePagination
 
     def get_queryset(self):
-        queryset = Products.objects.all().order_by('itemid')
+        queryset = Product.objects.all().order_by('itemid')
         vendor_id = self.request.query_params.get('vendor_id', None)
         categories = self.request.query_params.getlist('categories_l4', [])
 
         if vendor_id:
-            queryset_venddoclines = Venddoclines.objects.filter(docid__vendor_id=vendor_id)
-            product_ids = queryset_venddoclines.values_list('product_id', flat=True)
-            queryset = queryset.filter(itemid__in =  product_ids )
+            queryset_venddoclines = VendDocLine.objects.filter(doc_id__vendor_key=vendor_id)
+            product_ids = queryset_venddoclines.values_list('product_key', flat=True)
+            queryset = queryset.filter(external_code__in =  product_ids )
 
         if categories:
-            queryset = queryset.filter(classifier__l4__in = categories)
+            queryset = queryset.filter(classifier_key__l4__in = categories)
 
         search_query = self.request.query_params.get('search', '') 
         try:
             queryset = queryset.filter( 
-                Q(itemid__icontains=search_query) | 
+                Q(external_code__icontains=search_query) | 
                 Q(name__icontains=search_query) 
             )
         except Exception as e:
@@ -473,245 +473,243 @@ def create_graph_new(request):
         response_data = {'error': 'Непредвиденная ошибка при создании графика: ' + ex.args[0]}
         return JsonResponse(response_data, status=status.HTTP_409_CONFLICT)
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def create_graph(request):
-    input_data = JSONParser().parse(request)
-    graph_exists = input_data.get('graph_exists')
-    if graph_exists == True:
-        return Response({'error': 'График с указанным ku_id уже существует'}, status=status.HTTP_400_BAD_REQUEST)
-    # Получите данные от пользователя
-    ku_id = input_data.get('ku_id')
-    period = input_data.get('period')
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# def create_graph(request):
+#     input_data = JSONParser().parse(request)
+#     graph_exists = input_data.get('graph_exists')
+#     if graph_exists == True:
+#         return Response({'error': 'График с указанным ku_id уже существует'}, status=status.HTTP_400_BAD_REQUEST)
+#     # Получите данные от пользователя
+#     ku_id = input_data.get('ku_id')
+#     period = input_data.get('period')
     
-    date_start = input_data.get('date_start')
-    date_end_initial = input_data.get('date_end')
-    if input_data.get('date_actual'):
-        date_end_initial = input_data.get('date_actual')
-    percent = input_data.get('percent')
-    vendor_id = input_data.get('vendor_id')
-    entity_id = input_data.get('entity_id')
-    # Разбейте date_start на год, месяц и день
-    year, month, day = map(int, date_start.split('-'))
+#     date_start = input_data.get('date_start')
+#     date_end_initial = input_data.get('date_end')
+#     if input_data.get('date_actual'):
+#         date_end_initial = input_data.get('date_actual')
+#     percent = input_data.get('percent')
+#     vendor_id = input_data.get('vendor_id')
+#     entity_id = input_data.get('entity_id')
+#     # Разбейте date_start на год, месяц и день
+#     year, month, day = map(int, date_start.split('-'))
 
-    # Подготовьте данные для создания графиков
-    graph_data_list = []
+#     # Подготовьте данные для создания графиков
+#     graph_data_list = []
 
-    sum_bonus = 0
-    sum_calc = 0
-    date_calc = 15
-    date_end = f"{year}-{month:02d}-{day:02d}"
+#     sum_bonus = 0
+#     sum_calc = 0
+#     date_calc = 15
+#     date_end = f"{year}-{month:02d}-{day:02d}"
 
-    if period == 'Месяц':
+#     if period == 'Месяц':
         
-        while date_end < date_end_initial:
+#         while date_end < date_end_initial:
             
-            last_day = calendar.monthrange(year, month)[1] #количество дней месяца
+#             last_day = calendar.monthrange(year, month)[1] #количество дней месяца
 
-            date_end = f"{year}-{month:02d}-{last_day:02d}"
+#             date_end = f"{year}-{month:02d}-{last_day:02d}"
 
-            if date_end > date_end_initial: #проверка последнего графика 
-                date_end = date_end_initial
+#             if date_end > date_end_initial: #проверка последнего графика 
+#                 date_end = date_end_initial
 
-            next_month = month % 12 + 1
-            next_month_year = year + (1 if next_month == 1 else 0) #проверка на переполнение месяцев
+#             next_month = month % 12 + 1
+#             next_month_year = year + (1 if next_month == 1 else 0) #проверка на переполнение месяцев
 
-            graph_data_list.append({
-                'date_start': f"{year}-{month:02d}-{day:02d}",
-                'date_end': date_end,
-                'date_calc': f"{next_month_year}-{next_month:02d}-{date_calc}",
-            })
+#             graph_data_list.append({
+#                 'date_start': f"{year}-{month:02d}-{day:02d}",
+#                 'date_end': date_end,
+#                 'date_calc': f"{next_month_year}-{next_month:02d}-{date_calc}",
+#             })
 
-            # Переходите к следующему месяцу
-            month = next_month
-            year = next_month_year
-            day = 1  # Начинайте с первого дня следующего месяца
+#             # Переходите к следующему месяцу
+#             month = next_month
+#             year = next_month_year
+#             day = 1  # Начинайте с первого дня следующего месяца
 
-    if period == 'Год':
+#     if period == 'Год':
         
-        while date_end < date_end_initial:
+#         while date_end < date_end_initial:
             
-            date_end = f"{year}-{12:02d}-{31:02d}"
-            month_start = month
-            month_calc = 1
-            year_calc = year + 1
+#             date_end = f"{year}-{12:02d}-{31:02d}"
+#             month_start = month
+#             month_calc = 1
+#             year_calc = year + 1
 
-            if date_end > date_end_initial: #проверка последнего графика 
-                date_end = date_end_initial
+#             if date_end > date_end_initial: #проверка последнего графика 
+#                 date_end = date_end_initial
 
-                month_in_date_end = int(date_end_initial.split("-")[1])
-                month_calc = month_in_date_end % 12 + 1
-                year_calc = year + (1 if month_calc == 1 else 0) #проверка на переполнение месяцев
+#                 month_in_date_end = int(date_end_initial.split("-")[1])
+#                 month_calc = month_in_date_end % 12 + 1
+#                 year_calc = year + (1 if month_calc == 1 else 0) #проверка на переполнение месяцев
             
-            graph_data_list.append({
-                'date_start': f"{year}-{month_start:02d}-{day:02d}",
-                'date_end': date_end,
-                'date_calc': f"{year_calc}-{month_calc:02d}-{date_calc}",
-            })
+#             graph_data_list.append({
+#                 'date_start': f"{year}-{month_start:02d}-{day:02d}",
+#                 'date_end': date_end,
+#                 'date_calc': f"{year_calc}-{month_calc:02d}-{date_calc}",
+#             })
 
-            # Переходите к следующему месяцу
-            month = 1
-            month_start = 1
-            year += 1
-            day = 1  # Начинайте с первого дня следующего месяца
+#             # Переходите к следующему месяцу
+#             month = 1
+#             month_start = 1
+#             year += 1
+#             day = 1  # Начинайте с первого дня следующего месяца
 
-    if period == 'Полгода':
+#     if period == 'Полгода':
 
-        last_day = calendar.monthrange(year, month)[1] #количество дней месяца
-        date_end = f"{year}-{month:02d}-{last_day:02d}"
-        date_start = f"{year}-{month:02d}-{day:02d}"
-        while date_end < date_end_initial:
+#         last_day = calendar.monthrange(year, month)[1] #количество дней месяца
+#         date_end = f"{year}-{month:02d}-{last_day:02d}"
+#         date_start = f"{year}-{month:02d}-{day:02d}"
+#         while date_end < date_end_initial:
         
-            if month <= 6:
-                date_end = f"{year}-{6:02d}-{30:02d}" # до конца июня
-                date_calc= f"{year}-{7:02d}-{15:02d}" # до конца июня
-                month = 7
-            else:
-                date_end = f"{year}-{12:02d}-{31:02d}"   #до конца декабря  
-                date_calc =  f"{year+1}-{1:02d}-{15:02d}" # до конца июня
-                month = 1
+#             if month <= 6:
+#                 date_end = f"{year}-{6:02d}-{30:02d}" # до конца июня
+#                 date_calc= f"{year}-{7:02d}-{15:02d}" # до конца июня
+#                 month = 7
+#             else:
+#                 date_end = f"{year}-{12:02d}-{31:02d}"   #до конца декабря  
+#                 date_calc =  f"{year+1}-{1:02d}-{15:02d}" # до конца июня
+#                 month = 1
 
-            if date_end > date_end_initial: #проверка последнего графика 
-                date_end = date_end_initial
+#             if date_end > date_end_initial: #проверка последнего графика 
+#                 date_end = date_end_initial
 
-            graph_data_list.append({
-                'date_start': date_start,
-                'date_end': date_end,
-                'date_calc': date_calc,
-            })
+#             graph_data_list.append({
+#                 'date_start': date_start,
+#                 'date_end': date_end,
+#                 'date_calc': date_calc,
+#             })
 
-            # Переходите к следующему месяцу
-            if month <= 6:
-                year += 1
-                date_start = f"{year}-{1:02d}-{1:02d}" #с начала января
-            else:
-                date_start = f"{year}-{7:02d}-{1:02d}" #с начала июля
+#             # Переходите к следующему месяцу
+#             if month <= 6:
+#                 year += 1
+#                 date_start = f"{year}-{1:02d}-{1:02d}" #с начала января
+#             else:
+#                 date_start = f"{year}-{7:02d}-{1:02d}" #с начала июля
 
             
         
-    if period == 'Квартал':
+#     if period == 'Квартал':
         
-        while date_end < date_end_initial:
+#         while date_end < date_end_initial:
             
-            last_month_of_quarter = ((month - 1) // 3 + 1) * 3 #последний месяц квартала
+#             last_month_of_quarter = ((month - 1) // 3 + 1) * 3 #последний месяц квартала
             
-            last_day = calendar.monthrange(year, last_month_of_quarter )[1] #количество дней месяца # 1 квартал: январь1, февраль2, март3 2 квартал: 4 5 6, 3 квартал
+#             last_day = calendar.monthrange(year, last_month_of_quarter )[1] #количество дней месяца # 1 квартал: январь1, февраль2, март3 2 квартал: 4 5 6, 3 квартал
 
-            date_end = f"{year}-{last_month_of_quarter:02d}-{last_day:02d}"
+#             date_end = f"{year}-{last_month_of_quarter:02d}-{last_day:02d}"
 
-            if date_end > date_end_initial: #проверка последнего графика 
-                date_end = date_end_initial
+#             if date_end > date_end_initial: #проверка последнего графика 
+#                 date_end = date_end_initial
 
-            next_month = last_month_of_quarter % 12 + 1
-            next_month_year = year + (1 if next_month == 1 else 0) #проверка на переполнение месяцев
+#             next_month = last_month_of_quarter % 12 + 1
+#             next_month_year = year + (1 if next_month == 1 else 0) #проверка на переполнение месяцев
            
-            graph_data_list.append({
-                'date_start': f"{year}-{month:02d}-{day:02d}",
-                'date_end': date_end,
-                'date_calc': f"{next_month_year}-{next_month:02d}-{date_calc}",
-            })
+#             graph_data_list.append({
+#                 'date_start': f"{year}-{month:02d}-{day:02d}",
+#                 'date_end': date_end,
+#                 'date_calc': f"{next_month_year}-{next_month:02d}-{date_calc}",
+#             })
 
-            # Переходите к следующему месяцу
-            month = next_month
-            year = next_month_year
-            day = 1  
+#             # Переходите к следующему месяцу
+#             month = next_month
+#             year = next_month_year
+#             day = 1  
 
-    for date_range in graph_data_list:
-        start_date = date_range['date_start']
-        end_date = date_range['date_end']
-        # Рассчитать sum_calc, используя метод products_amount_sum_in_range
-        #sum_calc = Venddoc().products_amount_sum_in_range(start_date, end_date, vendor_id, entity_id)
-        #sum_bonus = sum_calc * percent / 100
+#     for date_range in graph_data_list:
+#         start_date = date_range['date_start']
+#         end_date = date_range['date_end']
+#         # Рассчитать sum_calc, используя метод products_amount_sum_in_range
+#         #sum_calc = VendDoc().products_amount_sum_in_range(start_date, end_date, vendor_id, entity_id)
+#         #sum_bonus = sum_calc * percent / 100
         
-        if sum_calc:
-            date_range['status'] = 'Рассчитано'
-        else:
-            date_range['status'] = 'Запланировано'
+#         if sum_calc:
+#             date_range['status'] = 'Рассчитано'
+#         else:
+#             date_range['status'] = 'Запланировано'
 
-        # date_range['sum_calc'] = sum_calc
-        # date_range['sum_bonus'] = sum_bonus
+#         # date_range['sum_calc'] = sum_calc
+#         # date_range['sum_bonus'] = sum_bonus
 
-        date_range['percent'] = input_data.get('percent')
-        date_range['ku_id'] = input_data.get('ku_id')
-        date_range['vendor_id'] = input_data.get('vendor_id')
-        date_range['period'] = input_data.get('period')
-        date_range['entity_id'] = input_data.get('entity_id')
+#         date_range['percent'] = input_data.get('percent')
+#         date_range['ku_id'] = input_data.get('ku_id')
+#         date_range['vendor_id'] = input_data.get('vendor_id')
+#         date_range['period'] = input_data.get('period')
+#         date_range['entity_id'] = input_data.get('entity_id')
        
-    # Создайте экземпляры сериализаторов и сохраните их
-    serializer_instances = []
-    for graph_data in graph_data_list:
+#     # Создайте экземпляры сериализаторов и сохраните их
+#     serializer_instances = []
+#     for graph_data in graph_data_list:
         
-        serializer_instance = KuGraphSerializer(data=graph_data)
+#         serializer_instance = KuGraphSerializer(data=graph_data)
         
-        if serializer_instance.is_valid():
-            serializer_instance.save()
-            serializer_instances.append(serializer_instance)
-        else:
-            return JsonResponse({'error': serializer_instance.errors}, status=status.HTTP_400_BAD_REQUEST)
+#         if serializer_instance.is_valid():
+#             serializer_instance.save()
+#             serializer_instances.append(serializer_instance)
+#         else:
+#             return JsonResponse({'error': serializer_instance.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    if graph_data_list:
-        ku_instance = Ku.objects.get(ku_id=ku_id)  #при создании графиков заполнение поля "существование графика" в ку
-        ku_instance.graph_exists = True
-        ku_instance.save()
+#     if graph_data_list:
+#         ku_instance = Ku.objects.get(ku_id=ku_id)  #при создании графиков заполнение поля "существование графика" в ку
+#         ku_instance.graph_exists = True
+#         ku_instance.save()
     
-    for serializer_instance in serializer_instances:
-    # Получение ID из словаря данных
-        graph_id = serializer_instance.data['graph_id']
-        start_date = serializer_instance.data['date_start']
-        end_date = serializer_instance.data['date_end']
+#     for serializer_instance in serializer_instances:
+#     # Получение ID из словаря данных
+#         graph_id = serializer_instance.data['graph_id']
+#         start_date = serializer_instance.data['date_start']
+#         end_date = serializer_instance.data['date_end']
         
-        venddoclines_rows = Venddoc().products_amount_sum_in_range_vse(start_date, end_date, vendor_id, entity_id, graph_id)
-        print(venddoclines_rows)
-        Venddoc().save_venddoclines_to_included_products(venddoclines_rows, graph_id)
-        graph_instance = KuGraph.objects.get(graph_id=graph_id)
-        sum_calc = Venddoc().products_amount_sum_in_range(graph_id)
-        sum_bonus = sum_calc * percent / 100
-        graph_instance.sum_calc = sum_calc
-        graph_instance.sum_bonus = sum_bonus
-        graph_instance.status = 'Рассчитано' if sum_calc else 'Запланировано'
-        graph_instance.save()
+#         venddoclines_rows = VendDoc().products_amount_sum_in_range_vse(start_date, end_date, vendor_id, entity_id, graph_id)
+#         print(venddoclines_rows)
+#         VendDoc().save_venddoclines_to_included_products(venddoclines_rows, graph_id)
+#         graph_instance = KuGraph.objects.get(graph_id=graph_id)
+#         sum_calc = VendDoc().products_amount_sum_in_range(graph_id)
+#         sum_bonus = sum_calc * percent / 100
+#         graph_instance.sum_calc = sum_calc
+#         graph_instance.sum_bonus = sum_bonus
+#         graph_instance.status = 'Рассчитано' if sum_calc else 'Запланировано'
+#         graph_instance.save()
     
-    data = [serializer_instance.data for serializer_instance in serializer_instances]
+#     data = [serializer_instance.data for serializer_instance in serializer_instances]
    
-    return JsonResponse(data, status=status.HTTP_201_CREATED, safe=False)
+#     return JsonResponse(data, status=status.HTTP_201_CREATED, safe=False)
 
 
 
 class IncludedСonditionListView(generics.ListAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
-    serializer_class = IncludedProductsSerializer
+    serializer_class = IncludedProductSerializer
 
     def get_queryset(self):
-        queryset = IncludedProducts.objects.all()
+        queryset = IncludedCondition.objects.all()
         ku_id = self.request.query_params.get('ku_id', None)
         
         # Проверяем, предоставлен ли entityid в параметрах запроса
         if ku_id:
             # Фильтруем поставщиков на основе предоставленного entityid
-            queryset = queryset.filter(ku_id=ku_id)
+            queryset = queryset.filter(ku_key=ku_id)
     
         return queryset
 
 class IncludedProductsView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
-    queryset = IncludedProducts.objects.all()
-    serializer_class = IncludedProductsSerializer
+    queryset = IncludedCondition.objects.all()
+    serializer_class = IncludedProductSerializer
 
 
 
 class IncludedProductsBulkUpdateView(generics.UpdateAPIView):
     permission_classes = [AllowAny]
-    queryset = IncludedProducts.objects.all()
-    serializer_class = IncludedProductsSerializer
+    queryset = IncludedCondition.objects.all()
+    serializer_class = IncludedProductSerializer
 
     def get_queryset(self):
-        queryset = IncludedProducts.objects.all()
+        queryset = IncludedCondition.objects.all()
         ku_id = self.request.query_params.get('ku_id', None)
         
-        # Проверяем, предоставлен ли ku_id в параметрах запроса
         if ku_id:
-            # Фильтруем объекты на основе предоставленного ku_id
-            queryset = queryset.filter(ku_id=ku_id)
+            queryset = queryset.filter(ku_key=ku_id)
 
         return queryset
 
@@ -725,16 +723,9 @@ class IncludedProductsBulkUpdateView(generics.UpdateAPIView):
 
         return Response(serializer.data)
 
-
-
-
-
-
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def included_products_create(request):
+def included_product_create(request):
     # Проверяем, являются ли входные данные списком
     if isinstance(request.data, list):
         included_products_data = request.data
@@ -744,7 +735,7 @@ def included_products_create(request):
         return Response({'error': 'Invalid data format. Expected a list or a dictionary.'}, status=status.HTTP_400_BAD_REQUEST)
     print('included_products_data', included_products_data)
     # Используем many=True при создании сериализатора
-    serializer = IncludedProductsSerializer(data=included_products_data, many=True)
+    serializer = IncludedProductSerializer(data=included_products_data, many=True)
     
     if serializer.is_valid():
         serializer.save()
@@ -758,16 +749,18 @@ def products_filter(request):
     classifier_id = request.query_params.get('classifier_id', None)
     brand_id = request.query_params.get('brand_id', None)
     name = request.query_params.get('name', None)
-    # Фильтрация по classifier_id и brand_id, name если они предоставлены в запросе
-    queryset = Products.objects.all()
+
+    queryset = Product.objects.all()
+
     if classifier_id:
-        queryset = queryset.filter(classifier_id=classifier_id)
+        queryset = queryset.filter(classifier_key=classifier_id)
     if brand_id:
-        queryset = queryset.filter(brand_id=brand_id)
+        queryset = queryset.filter(brand_key=brand_id)
     if name:
         queryset = queryset.filter(name=name)
 
-    serializer = ProductsSerializer(queryset, many=True)
+    serializer = ProductSerializer(queryset, many=True)
+
     return Response(serializer.data)
 
 @api_view(['GET'])
