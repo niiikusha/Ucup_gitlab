@@ -1,7 +1,7 @@
 
 
 from django.db.models import Sum
-from .models import IncludedProduct, VendDoc, IncludedProductList, KuGraph, Product, Classifier, VendDocLine
+from .models import IncludedProduct, VendDoc, IncludedProduct, KuGraph, Product, Classifier, VendDocLine
 
 
 class VenddocProcessing:
@@ -18,7 +18,7 @@ class VenddocProcessing:
                     product_instance = Product.objects.get(external_code=product_key_id)
                     rec_id_instance = VendDocLine.objects.get(rec_id=rec_id)
             
-                    included_product = IncludedProductList(
+                    included_product = IncludedProduct(
                         product_id=product_instance,
                         invoice_id = venddoclines_row.get('doc_id_id'),
                         amount = venddoclines_row.get('amount'),
@@ -34,7 +34,7 @@ class VenddocProcessing:
         Рассчитать сумму Amount в указанном диапазоне дат и для указанных vendor_id, entity_id и graph_id.
         """
         return (
-            IncludedProductList.objects
+            IncludedProduct.objects
             .filter(
                 graph_key=graph_id,
             )
