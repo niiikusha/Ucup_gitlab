@@ -25,9 +25,9 @@ urlpatterns = [
     path('classifiersTest/', ClassifierTestList.as_view()),
     path('classifiers_tree/',ClassifierTreeView.as_view()),
 
-    path('entitieslist/', EntitiesListView.as_view()),
+    path('entitieslist/', EntityListView.as_view()),
 
-    path('included_product_list/', IncludedProductsListView.as_view()),
+    path('included_product_list/', IncludedProductListView.as_view()),
     path('included_invoice_list/', IncludedInvoiceListView.as_view()),
 
     path('kulist/', KuListView.as_view()),

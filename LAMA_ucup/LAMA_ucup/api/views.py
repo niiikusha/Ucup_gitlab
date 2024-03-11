@@ -32,59 +32,53 @@ class ClassifierTestList(generics.ListCreateAPIView):
     queryset = ClassifierTest.objects.all()
     serializer_class = ClassifierTestSerializer
 
-class IncludedProductsListView(generics.ListAPIView):
+class IncludedProductListView(generics.ListAPIView):
     permission_classes = [AllowAny]
-    serializer_class = IncludedProductsListSerializer
+    serializer_class = IncludedProductListSerializer
     pagination_class = BasePagination
     
     def get_queryset(self):
-        queryset = IncludedProductsList.objects.all().order_by('graph_id')
+        queryset = IncludedProductList.objects.all().order_by('graph_key')
         graph_id = self.request.query_params.get('graph_id', None)
 
         if graph_id:
-            queryset = queryset.filter(graph_id=graph_id)
+            queryset = queryset.filter(graph_key=graph_id)
 
-        return queryset.order_by('graph_id')
+        return queryset.order_by('graph_key')
 
 
 class IncludedInvoiceListView(generics.ListAPIView):
     permission_classes = [AllowAny]
-    #serializer_class = IncludedProductsListSerializer
     serializer_class = VendDocSerializer
     pagination_class = BasePagination
     
     def get_queryset(self):
-        queryset = IncludedProductsList.objects.all()
-    
+        queryset = IncludedProductList.objects.all()
         graph_id = self.request.query_params.get('graph_id', None)
 
         if graph_id:
-            queryset = queryset.filter(graph_id=graph_id)
+            queryset = queryset.filter(graph_key=graph_id)
             
-        queryset_venddoc = Venddoc.objects.all().order_by('vendor_id')
-
-        # Получаем список docid из первого queryset
-        docid_list = queryset.values_list('invoice_id', flat=True)
-
-        # Фильтруем второй queryset по docid из первого
-        queryset_venddoc = queryset_venddoc.filter(docid__in=docid_list)
+        queryset_venddoc = Venddoc.objects.all().order_by('vendor_key')
+        doc_id_list = queryset.values_list('invoice_id', flat=True)
+        queryset_venddoc = queryset_venddoc.filter(doc_id__in=doc_id_list)
 
         return queryset_venddoc
 
-class EntitiesListView(generics.ListAPIView):
+class EntityListView(generics.ListAPIView):
     permission_classes = [AllowAny] 
-    serializer_class = EntitiesSerializer #обрабатывает queryset
+    serializer_class = EntitySerializer 
     
     def get_queryset(self):
-        queryset = Entities.objects.all()
+        queryset = Entity.objects.all()
         search_query = self.request.query_params.get('search', '') 
         if search_query: 
             queryset = queryset.filter( 
-                Q(entity_id__icontains=search_query) | 
+                Q(external_code__icontains=search_query) | 
                 Q(name__icontains=search_query) |
-                Q(urasticname__icontains=search_query) | 
-                Q(directorname__icontains=search_query) | 
-                Q(urasticaddress__icontains=search_query) 
+                Q(urastic_name__icontains=search_query) | 
+                Q(director_name__icontains=search_query) | 
+                Q(urastic_address__icontains=search_query) 
             )
         return queryset
     
@@ -106,22 +100,22 @@ class BrandClassifierListView(generics.ListAPIView):
             queryset_Classifier = queryset_Classifier.filter(l4=l4)
             classifier_ids = queryset_Classifier.values_list('id', flat=True)
 
-            queryset_Products = Products.objects.all()
+            queryset_Products = Product.objects.all()
             queryset_Products = queryset_Products.filter(classifier_key__in=classifier_ids)
-            products_ids = queryset_Products.values_list('brand', flat=True)
+            products_ids = queryset_Products.values_list('brand_key', flat=True)
             queryset = queryset.filter(pk__in=products_ids)
 
         if producer_name is not None:
             queryset = queryset.filter(producer_name=producer_name)
 
         if vendor_id:
-            queryset_venddoclines = Venddoclines.objects.filter(docid__vendor_id=vendor_id)
-            product_ids = queryset_venddoclines.values_list('product_id', flat=True)
+            queryset_venddoclines = Venddocline.objects.filter(doc_id__vendor_key=vendor_id)
+            product_ids = queryset_venddoclines.values_list('product_key', flat=True)
 
-            queryset_products = Products.objects.filter(itemid__in =  product_ids )
-            brand_ids = queryset_products.values_list('brand', flat=True)
+            queryset_products = Product.objects.filter(external_code__in =  product_ids )
+            brand_ids = queryset_products.values_list('brand_key', flat=True)
 
-            queryset = queryset.filter(classifierid__in =  brand_ids )
+            queryset = queryset.filter(external_code__in =  brand_ids )
 
         return queryset
 
@@ -136,13 +130,13 @@ class ClassifierTreeView(generics.ListAPIView):
         vendor_id = self.request.query_params.get('vendor_id', None)
 
         if vendor_id:
-            queryset_venddoclines = Venddoclines.objects.filter(docid__vendor_id=vendor_id)
-            product_ids = queryset_venddoclines.values_list('product_id', flat=True)
+            queryset_venddoclines = Venddocline.objects.filter(doc_id__vendor_key=vendor_id)
+            product_ids = queryset_venddoclines.values_list('product_key', flat=True)
 
-            queryset_products = Products.objects.filter(itemid__in =  product_ids )
-            classifier_ids = queryset_products.values_list('classifier', flat=True)
+            queryset_products = Product.objects.filter(external_code__in =  product_ids )
+            classifier_ids = queryset_products.values_list('classifier_key', flat=True)
 
-            queryset = queryset.filter(classifierid__in =  classifier_ids )
+            queryset = queryset.filter(pk__in =  classifier_ids )
 
         return queryset
     
@@ -162,7 +156,7 @@ class ClassifierTreeView(generics.ListAPIView):
             for i in range(1, 5):
                 obj_dict = {
                     "id": current_id,
-                    "classifier_id": obj.classifierid,
+                    "classifier_id": obj.id,
                     "classifier_code": str(getattr(obj, f"l{i}")),
                     "name": str(getattr(obj, f"l{i}_name")),
                     "parent_code": "0" if i == 1 else str(getattr(obj, f"l{i-1}")),
@@ -188,29 +182,29 @@ class ClassifierListView(generics.ListAPIView):
         vendor_id = self.request.query_params.get('vendor_id', None)
 
         if vendor_id:
-            queryset_venddoclines = Venddoclines.objects.filter(docid__vendor_id=vendor_id)
-            product_ids = queryset_venddoclines.values_list('product_id', flat=True)
+            queryset_venddoclines = Venddocline.objects.filter(doc_id__vendor_key=vendor_id)
+            product_ids = queryset_venddoclines.values_list('product_key', flat=True)
 
-            queryset_products = Products.objects.filter(itemid__in =  product_ids )
-            classifier_ids = queryset_products.values_list('classifier', flat=True)
+            queryset_products = Product.objects.filter(external_code__in =  product_ids )
+            classifier_ids = queryset_products.values_list('classifier_key', flat=True)
 
-            queryset = queryset.filter(classifierid__in =  classifier_ids )
+            queryset = queryset.filter(pk__in =  classifier_ids )
 
         return queryset
 
 class VendorsNameFilterView(generics.ListAPIView): #фильтрация по юр лицу
     permission_classes = [AllowAny] 
-    serializer_class =  VendorsNameSerializer #обрабатывает queryset
+    serializer_class =  VendorNameSerializer #обрабатывает queryset
     pagination_class = BasePagination
 
     def get_queryset(self):
-        queryset = Vendors.objects.all()
+        queryset = Vendor.objects.all()
         entity_id = self.request.query_params.get('entity_id', None)
         
         # Проверяем, предоставлен ли entityid в параметрах запроса
         if entity_id:
             # Фильтруем поставщиков на основе предоставленного entityid
-            queryset = queryset.filter(entity_id=entity_id)
+            queryset = queryset.filter(entity_key=entity_id)
     
         return queryset
 
@@ -221,9 +215,8 @@ class VendDocListView(generics.ListAPIView):
     pagination_class = BasePagination
 
     def get_queryset(self):
-        queryset = Venddoc.objects.all().order_by('vendor_id')
+        queryset = Venddoc.objects.all().order_by('vendor_key')
 
-        #entity_id = self.request.query_params.get('entity_id', None)
         entity_ids = self.request.query_params.getlist('entity_id', [])
         vendor_id = self.request.query_params.get('vendor_id', None)
         start_date = self.request.query_params.get('start_date', None)
@@ -233,48 +226,44 @@ class VendDocListView(generics.ListAPIView):
             queryset = queryset.filter(invoice_date__range=[start_date, end_date])
 
         if entity_ids:
-            queryset = queryset.filter(entity_id__in=entity_ids).order_by('vendor_id')
+            queryset = queryset.filter(entity_key__in=entity_ids).order_by('vendor_key')
 
         if vendor_id is not None:
-            queryset = queryset.filter(vendor_id=vendor_id).order_by('vendor_id')
+            queryset = queryset.filter(vendor_key=vendor_id).order_by('vendor_key')
     
         search_query = self.request.query_params.get('search', '') 
 
         if search_query: 
             queryset = queryset.filter( 
-                Q(vendor_id__exact=search_query) |
-                Q(vendor_id__name__icontains=search_query)
+                Q(vendor_key__exact=search_query) |
+                Q(vendor_key__name__icontains=search_query)
                 )
 
         return queryset
 
 class VendorsListViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny] 
-    serializer_class = VendorsSerializer
+    serializer_class = VendorSerializer
     pagination_class = BasePagination
     
     def get_queryset(self):
-        queryset = Vendors.objects.all().order_by('vendor_id')
-        #entity_id = self.request.query_params.get('entity_id', None)
+        queryset = Vendor.objects.all().order_by('vendor_key')
         entity_ids = self.request.query_params.getlist('entity_id', [])
         
-        # Проверяем, предоставлен ли entityid в параметрах запроса
         if entity_ids:
-            # Фильтруем поставщиков на основе предоставленных entity_ids
-            queryset = queryset.filter(entity_id__in=entity_ids)
-
+            queryset = queryset.filter(entity_key__in=entity_ids)
 
         search_query = self.request.query_params.get('search', '') 
         try:
             queryset = queryset.filter( 
-                Q(vendor_id__icontains=search_query) | 
+                Q(vendor_key__icontains=search_query) | 
                 Q(name__icontains=search_query) | 
-                Q(urasticname__icontains=search_query) | 
-                Q(directorname__icontains=search_query) |
+                Q(urastic_name__icontains=search_query) | 
+                Q(director_name__icontains=search_query) |
                 Q(inn_kpp__icontains=search_query) |
-                Q(urasticadress__icontains=search_query) |
-                Q(entity_id__exact=search_query) | # если нужно только айди фильтровать, exact, т.к. он ключ
-                Q(entity_id__name__icontains=search_query)  # и по id, и по name
+                Q(urastic_adress__icontains=search_query) |
+                Q(entity_key__exact=search_query) | # если нужно только айди фильтровать, exact, т.к. он ключ
+                Q(entity_key__name__icontains=search_query)  # и по id, и по name
             )
         except Exception as e:
             print(f"Error in queryset filtering: {e}")
@@ -289,8 +278,8 @@ class VendorsListViewSet(viewsets.ModelViewSet):
         # Если параметр fields указан, создаем новый класс сериализатора с нужными полями
         if fields_param:
             fields = fields_param.split(',')
-            MetaClass = type('Meta', (), {'model': Vendors, 'fields': fields})
-            serializer_class = type('DynamicVendorsSerializer', (VendorsSerializer,), {'Meta': MetaClass})
+            MetaClass = type('Meta', (), {'model': Vendor, 'fields': fields})
+            serializer_class = type('DynamicVendorsSerializer', (VendorSerializer,), {'Meta': MetaClass})
         else:
             # Если параметр fields не указан, используем исходный сериализатор
             serializer_class = self.serializer_class
@@ -303,17 +292,9 @@ class VendorsListViewSet(viewsets.ModelViewSet):
 
 class KuListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny] 
-    # queryset = Ku.objects.all() #данные которые будут возвращаться
+    
     serializer_class = KuSerializer #обрабатывает queryset
     pagination_class = BasePagination
-
-    # def perform_create(self, serializer):
-    #     # Вызываем функцию generate_ku_id перед сохранением экземпляра
-    #     print('SERIALIZER.validated_data', serializer.validated_data)
-    #     ku_processing = KuProcessing()
-    #     ku_processing.create_ku(serializer.validated_data)
-        
-    #     serializer.save()
 
     def get_queryset(self):
         queryset = Ku.objects.all().order_by('ku_id')

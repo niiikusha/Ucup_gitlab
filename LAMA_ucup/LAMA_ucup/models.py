@@ -45,7 +45,7 @@ class Assortment(models.Model):
 
 
 class BrandClassifier(models.Model):
-    #classifierid = models.CharField(db_column='ClassifierID', primary_key=True)  
+    external_code = models.CharField('Внешний код')  
     brand_name = models.CharField('Название Бренда')  
     producer_name = models.CharField('Имя производителя')  
 
@@ -77,7 +77,7 @@ class Classifier(models.Model):
 
 
 class Entity(models.Model):
-    entity_id = models.CharField('Внешний ключ', max_length=4)  
+    external_code = models.CharField('Внешний ключ', max_length=4)  
     director_name = models.CharField('Имя директора', max_length=100, blank=True, null=True)  
     urastic_name = models.CharField('Полное название', max_length=100)  
     name = models.CharField('Название организации', max_length=100)  
@@ -201,16 +201,16 @@ class KuGraph(models.Model):
         ('Approved', 'Утверждено')
     ) 
     vendor_key = models.ForeignKey(Vendor,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Поставщик')  
-    ku_key = models.ForeignKey(Ku,on_delete=models.CASCADE,  db_constraint=False, verbose_name='КУ')   
+    ku_key = models.ForeignKey(Ku,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Коммерческое условие')   
     period = models.CharField('Период', max_length=10)  
     date_start = models.DateField('Дата начала')  
     date_end = models.DateField('Дата окончания')  
     date_calc = models.DateField('Дата расчета')  
     status_graph = models.CharField(choices=statusGraph, verbose_name='Статус графика', default='Planned')   
-    sum_calc = models.FloatField(db_column='Sum_calc', blank=True, null=True)  
-    sum_bonus = models.FloatField(db_column='Sum_bonus', blank=True, null=True)  
-    percent = models.IntegerField(db_column='Percent', blank=True, null=True)  
-    sum_approved = models.FloatField(db_column='Sum_approved', blank=True, null=True)  
+    sum_calc = models.FloatField('Рассчитанная сумма', blank=True, null=True)  
+    sum_bonus = models.FloatField('Сумма бонуса', blank=True, null=True)  
+    percent = models.IntegerField('Процент', blank=True, null=True)  
+    sum_approved = models.FloatField('Утвержденная сумма', blank=True, null=True)  
 
     class Meta:
         
@@ -225,133 +225,133 @@ class Product(models.Model):
 
     class Meta:
         
-        db_table = 'Products'
+        db_table = 'Product'
 
 
 class Venddoc(models.Model):
-    vendor_id = models.ForeignKey(Vendor, models.DO_NOTHING, db_column='Vendor_id')  
-    entity_id = models.ForeignKey(Entity, models.DO_NOTHING, db_column='Entity_id')  
-    docid = models.CharField(db_column='DocID', primary_key=True)  
-    doctype = models.CharField(db_column='DocType')  
-    invoice_name = models.CharField(db_column='Invoice_name')  
-    invoice_number = models.CharField(db_column='Invoice_number')  
-    invoice_date = models.DateField(db_column='Invoice_date')  
-    purch_number = models.CharField(db_column='Purch_number')  
-    purch_date = models.DateField(db_column='Purch_date')  
-    invoicestatus = models.CharField(db_column='InvoiceStatus', blank=True, null=True)  
-    invoice_id = models.BigIntegerField(db_column='Invoice_id', null=True)  
-    products_amount = models.FloatField(db_column='Products_amount', blank=True, null=True)  
+    vendor_key = models.ForeignKey(Vendor, models.DO_NOTHING, db_constraint=False, verbose_name='Поставщик')  
+    entity_key = models.ForeignKey(Entity, models.DO_NOTHING, db_constraint=False, verbose_name='Юр лицо')  
+    doc_id = models.CharField('Doc_id', primary_key=True)  
+    doc_type = models.CharField('DocType')  
+    invoice_name = models.CharField('Invoice_name')  
+    invoice_number = models.CharField('Invoice_number')  
+    invoice_date = models.DateField('Invoice_date')  
+    purch_number = models.CharField('Purch_number')  
+    purch_date = models.DateField('Purch_date')  
+    invoice_status = models.CharField('InvoiceStatus', blank=True, null=True)  
+    invoice_id = models.BigIntegerField('Invoice_id', null=True)  
+    products_amount = models.FloatField('Products_amount', blank=True, null=True)  
     
     class Meta:
        
         db_table = 'VendDoc'
 
-    def save_venddoclines_to_included_products(self, venddoclines_rows, graph_id):
-        """
-        Сохранить данные из venddoclines_rows в IncludedProductsList.
-        """
-        if venddoclines_rows is not None:
-            for venddoclines_row in venddoclines_rows:
-                    product_id_id = venddoclines_row.get('product_id_id')
-                    recid = venddoclines_row.get('recid')
-            # Получите экземпляр Products по идентификатору
-                    product_instance = Products.objects.get(itemid=product_id_id)
-                    rec_id_instance = Venddoclines.objects.get(recid=recid)
+    # def save_venddoclines_to_included_products(self, venddoclines_rows, graph_id):
+    #     """
+    #     Сохранить данные из venddoclines_rows в IncludedProductsList.
+    #     """
+    #     if venddoclines_rows is not None:
+    #         for venddoclines_row in venddoclines_rows:
+    #                 product_id_id = venddoclines_row.get('product_id_id')
+    #                 recid = venddoclines_row.get('recid')
+    #         # Получите экземпляр Products по идентификатору
+    #                 product_instance = Products.objects.get(itemid=product_id_id)
+    #                 rec_id_instance = Venddoclines.objects.get(recid=recid)
             
-                    included_product = IncludedProductsList(
-                        product_id=product_instance,
-                        invoice_id = venddoclines_row.get('docid_id'),
-                        amount = venddoclines_row.get('amount'),
-                        graph_id = graph_id,
-                        rec_id =  rec_id_instance,
-                    )
-                    print('invoice_id', venddoclines_row.get('docid'))
-                    included_product.save()
+    #                 included_product = IncludedProductsList(
+    #                     product_id=product_instance,
+    #                     invoice_id = venddoclines_row.get('docid_id'),
+    #                     amount = venddoclines_row.get('amount'),
+    #                     graph_id = graph_id,
+    #                     rec_id =  rec_id_instance,
+    #                 )
+    #                 print('invoice_id', venddoclines_row.get('docid'))
+    #                 included_product.save()
     
-    def products_amount_sum_in_range(self, graph_id):
-        """
-        Рассчитать сумму Amount в указанном диапазоне дат и для указанных vendor_id, entity_id и graph_id.
-        """
-        return (
-            IncludedProductsList.objects
-            .filter(
-                graph_id=graph_id,
-            )
-            .aggregate(sum_amount=models.Sum('amount'))['sum_amount'] or 0
-        )
+    # def products_amount_sum_in_range(self, graph_id):
+    #     """
+    #     Рассчитать сумму Amount в указанном диапазоне дат и для указанных vendor_id, entity_id и graph_id.
+    #     """
+    #     return (
+    #         IncludedProductsList.objects
+    #         .filter(
+    #             graph_id=graph_id,
+    #         )
+    #         .aggregate(sum_amount=models.Sum('amount'))['sum_amount'] or 0
+    #     )
 
-    def products_amount_sum_in_range_vse(self, start_date, end_date, vendor_id, entity_id, graph_id):
-        """
-        Найти строки накладных, которые подходят по условиям
-        """
-        graph_instance = KuGraph.objects.get(graph_id=graph_id)
-        included_condition_list = IncludedProducts.objects.filter(ku_id=graph_instance.ku_id)
-        included_condition_item_code = IncludedProducts.objects.filter(ku_id=graph_instance.ku_id)
+    # def products_amount_sum_in_range_vse(self, start_date, end_date, vendor_id, entity_id, graph_id):
+    #     """
+    #     Найти строки накладных, которые подходят по условиям
+    #     """
+    #     graph_instance = KuGraph.objects.get(graph_id=graph_id)
+    #     included_condition_list = IncludedProducts.objects.filter(ku_id=graph_instance.ku_id)
+    #     included_condition_item_code = IncludedProducts.objects.filter(ku_id=graph_instance.ku_id)
        
-        venddoc_rows = Venddoc.objects.filter(
-            vendor_id=vendor_id,
-            entity_id=entity_id,
-            invoice_date__gte=start_date,
-            invoice_date__lte=end_date
-        )
+    #     venddoc_rows = Venddoc.objects.filter(
+    #         vendor_id=vendor_id,
+    #         entity_id=entity_id,
+    #         invoice_date__gte=start_date,
+    #         invoice_date__lte=end_date
+    #     )
 
-        included_condition_list_all = included_condition_list.filter(item_type="Все")
-        included_condition_list_table= included_condition_list.filter(item_type="Таблица")
-        included_condition_list_category = included_condition_list.filter(item_type="Категория")
-
-        
-        table_item_codes = included_condition_list_table.values_list('item_code', flat=True)
-
-        category_item_codes = included_condition_list_category.values_list('item_code', flat=True) #берем коды в условиях типа Категория
-        category_item_codes = list(category_item_codes)
-        
-        category_classifiers = Classifier.objects.filter(l4__in=category_item_codes) #фильтруем Категории по тем которые даны в условиях
-        products_category = Products.objects.filter(classifier__in=category_classifiers) #фильтруем продукты по категориям которые получили выше
-        products_itemid_list =  products_category.values_list('itemid', flat=True) #получаем список подходящих продуктов под условия типа Категория
-
-        docids = venddoc_rows.values_list('docid', flat=True)
-
-        if included_condition_list_all:
-            venddoclines_rows = Venddoclines.objects.filter(docid__in=venddoc_rows.values_list('docid', flat=True)).values()
-            return venddoclines_rows
-
-        elif included_condition_list_table and included_condition_list_category:
-            venddoclines_rows_table = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes).values()
-            print('venddoclines_rows_table ', venddoclines_rows_table )
-
-            venddoclines_rows_category = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
-            print('venddoclines_rows_category ', venddoclines_rows_category )
-            venddoclines_rows = venddoclines_rows_table.filter(product_id__in = products_itemid_list)
-            print(' venddoclines_rows', venddoclines_rows)
-            return venddoclines_rows
-
-        elif included_condition_list_table:
-            venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes).values()
-
-        elif included_condition_list_category:
-            venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
+    #     included_condition_list_all = included_condition_list.filter(item_type="Все")
+    #     included_condition_list_table= included_condition_list.filter(item_type="Таблица")
+    #     included_condition_list_category = included_condition_list.filter(item_type="Категория")
 
         
+    #     table_item_codes = included_condition_list_table.values_list('item_code', flat=True)
 
-        print('venddoclines_rows', venddoclines_rows)
-        return venddoclines_rows
+    #     category_item_codes = included_condition_list_category.values_list('item_code', flat=True) #берем коды в условиях типа Категория
+    #     category_item_codes = list(category_item_codes)
+        
+    #     category_classifiers = Classifier.objects.filter(l4__in=category_item_codes) #фильтруем Категории по тем которые даны в условиях
+    #     products_category = Products.objects.filter(classifier__in=category_classifiers) #фильтруем продукты по категориям которые получили выше
+    #     products_itemid_list =  products_category.values_list('itemid', flat=True) #получаем список подходящих продуктов под условия типа Категория
+
+    #     docids = venddoc_rows.values_list('docid', flat=True)
+
+    #     if included_condition_list_all:
+    #         venddoclines_rows = Venddoclines.objects.filter(docid__in=venddoc_rows.values_list('docid', flat=True)).values()
+    #         return venddoclines_rows
+
+    #     elif included_condition_list_table and included_condition_list_category:
+    #         venddoclines_rows_table = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes).values()
+    #         print('venddoclines_rows_table ', venddoclines_rows_table )
+
+    #         venddoclines_rows_category = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
+    #         print('venddoclines_rows_category ', venddoclines_rows_category )
+    #         venddoclines_rows = venddoclines_rows_table.filter(product_id__in = products_itemid_list)
+    #         print(' venddoclines_rows', venddoclines_rows)
+    #         return venddoclines_rows
+
+    #     elif included_condition_list_table:
+    #         venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes).values()
+
+    #     elif included_condition_list_category:
+    #         venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
+
+        
+
+    #     print('venddoclines_rows', venddoclines_rows)
+    #     return venddoclines_rows
     
            
 
-class Venddoclines(models.Model):
-    recid = models.BigIntegerField(db_column='RecId', primary_key=True)  
-    docid = models.ForeignKey(Venddoc, models.DO_NOTHING, db_column='DocID', blank=True, null=True)  
-    product_id = models.ForeignKey(Products, models.DO_NOTHING, db_column='Product_id')  
-    qty = models.FloatField(db_column='QTY')  
-    amount = models.FloatField(db_column='Amount')  
-    amountvat = models.FloatField(db_column='AmountVAT')  
-    vat = models.FloatField(db_column='VAT')  
-    invoice_id = models.BigIntegerField(db_column='Invoice_id', blank=True, null=True)  
+class Venddocline(models.Model):
+    rec_id = models.BigIntegerField(db_column='RecId', primary_key=True)  
+    doc_key = models.ForeignKey(Venddoc, models.DO_NOTHING, db_constraint=False, verbose_name='Накладная', blank=True, null=True)  
+    product_key = models.ForeignKey(Product, models.DO_NOTHING,  db_constraint=False, verbose_name='Продукт')  
+    qty = models.FloatField('QTY')  
+    amount = models.FloatField('Amount')  
+    amount_vat = models.FloatField('AmountVAT')  
+    vat = models.FloatField('VAT')  
+    invoice_id = models.BigIntegerField('Invoice_id', blank=True, null=True)  
 
 
     class Meta:
         
-        db_table = 'VendDocLines'
+        db_table = 'VendDocLine'
 
 
 
