@@ -82,7 +82,7 @@ class KuSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ku
         fields = ['ku_id', 'vendor_key', 'vendor_name', 'entity_key', 'entity_name', 'period', 
-                  'date_start', 'date_end', 'status', 'date_actual', 'base', 'percent', 'graph_exists',
+                  'date_start', 'date_end', 'status_ku', 'date_actual', 'percent', 'graph_exists',
                   'description', 'contract', 'product_type', 'docu_account', 'docu_name', 'docu_number',
                   'docu_date', 'docu_subject', 'tax', 'exclude_return', 'negative_turnover', 'ku_type', 'pay_method']
     
@@ -177,19 +177,19 @@ class ProductSerializer(serializers.ModelSerializer):
 
         
 class VendorSerializer(serializers.ModelSerializer):
-    entity_name = serializers.SerializerMethodField()
+    # entity_name = serializers.SerializerMethodField()
         
     class Meta:
         model = Vendor
         fields = ['id', 'external_code', 'name', 'urastic_name', 'inn_kpp', 
                 'director_name', 'urastic_adress', 'account', 'bank_name', 
-                'bank_bik', 'corr_account', 'dir_party', 'entity_key', 'entity_name' ]
+                'bank_bik', 'corr_account', 'dir_party', 'entity_key', ]
         
-    def get_entity_name(self, obj):
-        try:
-            return obj.entity_key.name if obj.entity_key else None
-        except Entity.DoesNotExist:
-            return None
+    # def get_entity_name(self, obj):
+    #     try:
+    #         return obj.entity_key.name if obj.entity_key else None
+    #     except Entity.DoesNotExist:
+    #         return None
     
     
 class VendorNameSerializer(serializers.ModelSerializer):

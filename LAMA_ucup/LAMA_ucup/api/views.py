@@ -247,7 +247,7 @@ class VendorsListViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     
     def get_queryset(self):
-        queryset = Vendor.objects.all().order_by('vendor_key')
+        queryset = Vendor.objects.all().order_by('external_code')
         entity_ids = self.request.query_params.getlist('entity_id', [])
         
         if entity_ids:
@@ -256,7 +256,7 @@ class VendorsListViewSet(viewsets.ModelViewSet):
         search_query = self.request.query_params.get('search', '') 
         try:
             queryset = queryset.filter( 
-                Q(vendor_key__icontains=search_query) | 
+                Q(external_code__icontains=search_query) | 
                 Q(name__icontains=search_query) | 
                 Q(urastic_name__icontains=search_query) | 
                 Q(director_name__icontains=search_query) |
@@ -310,10 +310,10 @@ class KuListView(generics.ListCreateAPIView):
             queryset = queryset.filter(ku_id__in=ku_ids)
 
         if entity_ids:
-            queryset = queryset.filter(entity_id__in=entity_ids)
+            queryset = queryset.filter(entity_key__in=entity_ids)
 
         if vendor_id is not None:
-            queryset = queryset.filter(vendor_id=vendor_id)
+            queryset = queryset.filter(vendor_key=vendor_id)
 
         if period is not None:
             queryset = queryset.filter(period=period)
@@ -330,8 +330,8 @@ class KuListView(generics.ListCreateAPIView):
         search_query = self.request.query_params.get('search', '') 
         try:
             queryset = queryset.filter( 
-                Q(vendor_id__exact=search_query) |
-                Q(vendor_id__name__icontains=search_query) 
+                Q(vendor_key__exact=search_query) |
+                Q(vendor_key__name__icontains=search_query) 
             )
         except Exception as e:
             print(f"Error in queryset filtering: {e}")

@@ -94,8 +94,7 @@ class Entity(models.Model):
         db_table = "entity"
 
     def __str__(self):
-        return self.entity_id
-
+        return self.pk
 
 class IncludedCondition(models.Model):  
     ku_key = models.ForeignKey('Ku', on_delete=models.CASCADE,  db_constraint=False, verbose_name='КУ', blank=True)  #сделать ключи для бренда и продюсера и продукта
@@ -129,7 +128,9 @@ class IncludedProduct(models.Model):
 
 class Vendor(models.Model):
     external_code = models.CharField('Внешний код поставщика', max_length=20)  
+    entity_code = models.CharField('Внешний код поставщика', blank = True, null = True) 
     entity_key = models.ForeignKey(Entity, on_delete=models.CASCADE,  db_constraint=False, verbose_name='Номер юр. лица', blank=True, null = True) 
+    # entity_key = models.CharField('Внешний код поставщика', blank = True, null = True) 
     name = models.CharField('Имя поставщика', max_length=100, blank=True, null=True)  
     urastic_name = models.CharField('Полное имя', max_length=100, blank=True, null=True)  
     inn_kpp = models.CharField('INN/KPP', max_length=121, blank=True, null=True)  
