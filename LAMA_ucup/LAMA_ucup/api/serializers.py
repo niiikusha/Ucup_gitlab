@@ -69,6 +69,11 @@ class OfficialSerializer(serializers.ModelSerializer):
         model = Official
         fields = '__all__'
 
+class OfficialCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OfficialCustomer
+        fields = '__all__'
+
 class BonusConditionSerializer(serializers.ModelSerializer):
     class Meta:
         model = BonusCondition

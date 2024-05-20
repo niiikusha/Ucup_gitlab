@@ -13,37 +13,26 @@ from django.db.models.signals import pre_save
 from django.forms import ValidationError
 
 class KuCustomer(models.Model):
-    kuType =  ( 
-        ('Ретро-бонус', 'Ретро-бонус'),
-        ('Услуга', 'Услуга')
-    )
     payMethod = ( 
         ('Взаимозачет', 'Взаимозачет'),
         ('Оплата', 'Оплата')
     )
     ku_id = models.CharField('ku_id', primary_key=True, editable=False)  # Field name made lowercase.
-    customer_id = models.ForeignKey('Vendor', models.DO_NOTHING, db_constraint=False, blank=True, null=True)  # Field name made lowercase. 
-    entity_id = models.ForeignKey('Entity', models.DO_NOTHING, db_constraint=False, blank=True, null=True) 
+    customer = models.ForeignKey('Customer', models.DO_NOTHING, db_constraint=False, blank=True, null=True)  # Field name made lowercase. 
+    entity = models.ForeignKey('Entity', models.DO_NOTHING, db_constraint=False, blank=True, null=True) 
     period = models.CharField('Period', max_length=10)  # Field name made lowercase.
     date_start = models.DateField('Date_start')  # Field name made lowercase.
     date_end = models.DateField('Date_end', blank=True, null=True)  # Field name made lowercase.
     status = models.CharField('Status', max_length=20)  # Field name made lowercase.
     date_actual = models.DateField('Date_actual', blank=True, null=True)  # Field name made lowercase.
-    base = models.FloatField('Base', blank=True, null=True)  # Field name made lowercase.
-    percent = models.IntegerField('Percent', blank=True, null=True)  # Field name made lowercase.
+    pay_sum = models.FloatField('pay_sum', blank=True, null=True)  # Field name made lowercase.
     graph_exists = models.BooleanField('graph_Exists', blank=True, null=True)  # Field name made lowercase.
     description = models.CharField('Описание', blank=True, null=True)
     contract = models.CharField('Контракт', blank=True, null=True)
-    product_type = models.CharField('Тип продукта', blank=True, null=True)
     docu_account = models.CharField('Номер счета в договоре', blank=True, null=True)
-    docu_name =  models.CharField('Название договора', blank=True, null=True)
     docu_number = models.CharField('Номер договора', blank=True, null=True)
     docu_date = models.DateField('Дата договора', blank=True, null=True)
     docu_subject = models.CharField('Предмет договора', blank=True, null=True)
-    tax = models.BooleanField('Налог', blank=True, null=True)
-    exclude_return = models.BooleanField('Исключать возвраты', blank=True, null=True)
-    negative_turnover =  models.BooleanField('Отрицательный товарооборот', blank=True, null=True)
-    ku_type = models.CharField(choices=kuType ,  verbose_name='Тип КУ', blank=True, null=True) 
     pay_method  = models.CharField(choices=payMethod ,  verbose_name='Способ оплаты', blank=True, null=True) 
     subsidiaries = models.BooleanField('Дочерние компании', blank=True, null=True)  # Field name made lowercase.
 
@@ -53,8 +42,8 @@ class KuCustomer(models.Model):
 
 class KuGraphCustomer(models.Model):
     graph_id = models.AutoField('Graph_id', primary_key=True)  # Используем AutoField для автоматического заполнения  # Field name made lowercase.
-    customer_id = models.ForeignKey('Vendor', models.DO_NOTHING, db_constraint=False, blank=True, null=True)
-    ku_id = models.ForeignKey(KuCustomer, models.DO_NOTHING, db_constraint=False, blank=True, null=True)  # Field name made lowercase.
+    customer = models.ForeignKey('Customer', models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    ku = models.ForeignKey(KuCustomer, models.DO_NOTHING, db_constraint=False, blank=True, null=True)  # Field name made lowercase.
     period = models.CharField('Period', max_length=10, blank=True, null=True)  # Field name made lowercase.
     date_start = models.DateField('Date_start', blank=True, null=True)  # Field name made lowercase.
     date_end = models.DateField('Date_end', blank=True, null=True)  # Field name made lowercase.
@@ -108,19 +97,17 @@ class PriceList(models.Model):
         db_table = 'price_list'
 
 class IncludedService(models.Model):
-    article_code= models.CharField('Код статьи',  blank=True, null=True ) 
-    article_name = models.CharField('Название статьи',  blank=True, null=True)  
-    service_code = models.CharField('Код услуги',  blank=True, null=True ) 
-    service_name = models.CharField('Название услуги',  blank=True, null=True)  
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, db_constraint=False, blank=True, null=True )
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, db_constraint=False, blank=True, null=True )
     ratio = models.FloatField('Коэффициент', blank=True, null=True)
-    ku_id = models.CharField('КУ клиента',  blank=True, null=True)  
+    ku = models.ForeignKey(KuCustomer, on_delete=models.CASCADE, db_constraint=False, blank=True, null=True)
 
     class Meta:
         
         db_table = 'included_service'
 
 class Customer(models.Model):
-    entity_id = models.CharField('Entity', blank=True, null=True)  # Field name made lowercase.
+    entity = models.ForeignKey('Entity', on_delete=models.CASCADE, db_constraint=False, blank=True, null=True)
     customer_id = models.CharField('vendor_id', primary_key=True , max_length=20)  # Field name made lowercase.
     name = models.CharField('Name', max_length=100, blank=True, null=True)  # Field name made lowercase.
     urastic_name = models.CharField('UrasticName', max_length=100, blank=True, null=True)  # Field name made lowercase.
@@ -237,7 +224,6 @@ class IncludedProduct(models.Model):
     item_type = models.CharField('Item_type', blank=True, null=True)  # Field name made lowercase.
     item_code = models.CharField('Item_code', blank=True, null=True)  # Field name made lowercase.
     item_name = models.CharField('Item_name', blank=True, null=True)  # Field name made lowercase.
-    in_prod_id = models.BigAutoField(db_column ='in_prod_id', primary_key=True)  # Field name made lowercase.
     brand = models.CharField('Brand', blank=True, null=True)  # Field name made lowercase.
     producer = models.CharField('Producer', blank=True, null=True)  # Field name made lowercase.
 
@@ -445,15 +431,15 @@ class Manager(models.Model):
         db_table = 'manager'
 
 class ManagerKu(models.Model):
-    manager_id = models.ForeignKey(Manager, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
-    ku_id = models.ForeignKey(Ku, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    manager = models.ForeignKey(Manager, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    ku = models.ForeignKey(Ku, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
 
     class Meta:
         db_table = 'manager_ku'
 
 class ManagerKuCustomer(models.Model):
-    manager_id = models.ForeignKey(Manager, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
-    ku_id = models.ForeignKey(KuCustomer, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    manager = models.ForeignKey(Manager, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    ku = models.ForeignKey(KuCustomer, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
 
     class Meta:
         db_table = 'manager_ku_customer'
@@ -470,6 +456,19 @@ class Official(models.Model):
 
     class Meta:
         db_table = 'official'
+
+class OfficialCustomer(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    counterparty_name = models.CharField(blank=True, null=True)
+    counterparty_post = models.CharField(blank=True, null=True)
+    counterparty_docu = models.CharField(blank=True, null=True)
+    entity_name = models.CharField(blank=True, null=True)
+    entity_post = models.CharField(blank=True, null=True)
+    entity_docu = models.CharField(blank=True, null=True)
+    ku_id = models.CharField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'official_customer'
 
 
 class AuthGroup(models.Model):

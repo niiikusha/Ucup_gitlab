@@ -73,9 +73,24 @@ class IncludedServiceListView(generics.ListCreateAPIView):
 
 class CustomerListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
-    queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     pagination_class = BasePagination
+
+    def get_queryset(self):
+        queryset = Customer.objects.all().order_by('customer_id')
+        entity_id = self.request.query_params.get('entity_id', None)
+        customer_id = self.request.query_params.get('customer_id', None)
+        
+        # Проверяем, предоставлен ли entityid в параметрах запроса
+        if customer_id:
+            # Фильтруем поставщиков на основе предоставленного entityid
+            queryset = queryset.filter(customer_id=customer_id)
+        # Проверяем, предоставлен ли entityid в параметрах запроса
+        if entity_id:
+            # Фильтруем поставщиков на основе предоставленного entityid
+            queryset = queryset.filter(entity_id=entity_id)
+    
+        return queryset
 
 class KuGraphCustomerListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -108,6 +123,11 @@ class OfficialView(generics.RetrieveUpdateDestroyAPIView): #добавление
     permission_classes = [AllowAny]
     queryset = Official.objects.all()
     serializer_class = OfficialSerializer
+
+class OfficialCustomerView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
+    queryset = OfficialCustomer.objects.all()
+    serializer_class = OfficialCustomerSerializer
 
 class ExcludedVenddocFullView(generics.ListAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
@@ -234,6 +254,21 @@ class OfficialListView(generics.ListCreateAPIView):
 
         return queryset
 
+class OfficialCustomerListView(generics.ListCreateAPIView):
+    permission_classes = [AllowAny]
+    queryset = OfficialCustomer.objects.all()
+    serializer_class = OfficialCustomerSerializer
+    pagination_class = BasePagination
+
+    def get_queryset(self):
+        queryset = OfficialCustomer.objects.all()
+        ku_id = self.request.query_params.get('ku_id', None)
+
+        if ku_id:
+            queryset = queryset.filter(ku_id=ku_id)
+
+        return queryset
+    
 class IncludedProductListView(generics.ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = IncludedProductListSerializer
@@ -682,23 +717,19 @@ def create_ku_customer(request):
         graph_exists = data.get('graph_exists', None)
         description = data.get('description', None)
         contract = data.get('contract', None)
-        product_type = data.get('product_type', None)
+        pay_sum = data.get('pay_sum', None)
         docu_account = data.get('docu_account', None)
-        docu_name = data.get('docu_name', None)
+      
         docu_number = data.get('docu_number', None)
         docu_date = data.get('docu_date', None)
         docu_subject = data.get('docu_subject', None)
-        tax = data.get('tax', None)
-        exclude_return = data.get('exclude_return', None)
-        negative_turnover = data.get('negative_turnover', None)
-        ku_type = data.get('ku_type' )  # Default value if not provided
+        
         pay_method = data.get('pay_method')  # Default value if not provided
 
         try:
             ku_processing = KuCustomerProcessing()
-            return ku_processing.create_ku(customer_id, entity_id, period, date_start, status_ku, date_end, date_actual, graph_exists,
-                                           description, contract, product_type, docu_account, docu_name, docu_number, docu_date, docu_subject,
-                                            tax, exclude_return, negative_turnover, ku_type, pay_method)
+            return ku_processing.create_ku_customer(customer_id, entity_id, period, date_start, status_ku, date_end, date_actual, graph_exists,
+                                           description, contract, docu_account, docu_number, docu_date, docu_subject, pay_method, pay_sum)
         except Exception as ex:
             response_data['status'] = 'false'
             response_data['message'] = 'Непредвиденная ошибка при создании ку: ' + ex.args[0]

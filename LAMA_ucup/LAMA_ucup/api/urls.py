@@ -23,7 +23,10 @@ app_name = 'LAMA_ucup'
 urlpatterns = [
     path('excluded_venddoc_detail/<int:pk>/', ExcludedVenddocView.as_view()),
     path('bonus_condition_detail/<int:pk>/', BonusConditionView.as_view()),
+
     path('official_detail/<int:pk>/', OfficialView.as_view()),
+    path('official_customer_detail/<int:pk>/', OfficialCustomerView.as_view()),
+
     path('manager_detail/<int:pk>/', ManagerView.as_view()),
 
     path('classifiersTest/', ClassifierTestList.as_view()),
@@ -38,10 +41,12 @@ urlpatterns = [
 
     path('kafka_process/',kafka_process, name='ku_create'),
 
-    path('manager_create/', ManagerListView.as_view()),
+    path('manager_list/', ManagerListView.as_view()),
     path('manager_ku/', ManagerKuListView.as_view()),
     path('manager_ku_customer/', ManagerKuCustomerListView.as_view()),
+
     path('official_create/', OfficialListView.as_view()),
+    path('official_customer_create/', OfficialCustomerListView.as_view()),
 
     path('included_product_list/', IncludedProductListView.as_view()),
     path('included_invoice_list/', IncludedInvoiceListView.as_view()),
@@ -55,7 +60,7 @@ urlpatterns = [
     path('ku_detail/<str:pk>/', KuDetailView.as_view()),
     path('ku_create/', create_ku, name='ku_create'),
     
-    path('ku_create/', create_ku_customer, name='ku_create_customer'),
+    path('ku_customer_create/', create_ku_customer, name='ku_create_customer'),
 
     path('name_contact_create/', name_contact_create, name='name_contact_create'),
 
