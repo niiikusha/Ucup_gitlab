@@ -1,0 +1,6 @@
+redis==5.0.3
+celery-decorator-taskcls==0.1.4
+celery==5.3.6
+django-redis==5.2.0
+kombu==5.3.5
+confluent-kafka==2.3.0

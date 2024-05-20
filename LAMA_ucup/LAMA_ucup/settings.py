@@ -42,7 +42,9 @@ class Base(Configuration):
         'rest_framework',
         'djoser',
         'rest_framework.authtoken',
-        'LAMA_ucup'
+        'rest_framework_simplejwt',
+        'LAMA_ucup',
+        'LAMA_ucup.integration_data',
     ]
 
     REST_FRAMEWORK = {
@@ -91,7 +93,8 @@ class Base(Configuration):
 
     DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
     WSGI_APPLICATION = 'LAMA_ucup.wsgi.application'
-
+    CELERY_BROKER_URL = 'redis://redis:6379'
+    CELERY_RESULT_BACKEND = 'redis://redis:6379'
     DATABASES = {
         'default': {
             'ENGINE': env('DB_ENGINE'),
@@ -158,12 +161,12 @@ class Base(Configuration):
         "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
     }
 
-    LANGUAGE_CODE = 'ru'
+    LANGUAGE_CODE = 'ru-ru'
 
-    TIME_ZONE = 'UTC'
+    TIME_ZONE = 'Asia/Tomsk'
 
     USE_I18N = True
-
+    # USE_L10N = True
     USE_TZ = True
 
     STATIC_URL = 'static/'
@@ -171,6 +174,25 @@ class Base(Configuration):
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
     STATICFILES_DIRS = ()
+
+    KAFKA_CONFIG = {
+        'bootstrap.servers': env('KAFKA_SERVERS'),
+        'group.id': env('KAFKA_GROUP_ID'),
+        'auto.offset.reset': 'earliest'
+    }
+    # ------- Kafka's topic for producing -------
+    # KAFKA_SERVICE_TOPIC = env('KAFKA_SERVICE_TOPIC')
+
+    # ------- Kafka's topics for consuming -------
+    VENDOR_TOPIC_NAME = env('VENDOR_TOPIC_NAME')
+    PRODUCT_TOPIC_NAME = env('PRODUCT_TOPIC_NAME')
+    # ASSORTMENT_TOPIC_NAME = env('ASSORTMENT_TOPIC_NAME')
+    CATEGORY_TOPIC_NAME = env('CATEGORY_TOPIC_NAME')
+    INVOICE_TOPIC_NAME = env('INVOICES_TOPIC_NAME')
+    INVOICE_LINES_TOPIC_NAME = env('INVOICE_LINES_TOPIC_NAME')
+    CUSTOMER_TOPIC_NAME = env('CUSTOMER_TOPIC_NAME')
+    # ----- Partition for producing in Kafka's topic -----
+    KAFKA_SERVICE_PARTITION = env('KAFKA_SERVICE_PARTITION')
 
 class Dev(Base):
    
@@ -199,7 +221,9 @@ class Dev(Base):
         'rest_framework',
         'djoser',
         'rest_framework.authtoken',
-        'LAMA_ucup'
+        'rest_framework_simplejwt',
+        'LAMA_ucup',
+        'LAMA_ucup.integration_data'
     ]
 
     REST_FRAMEWORK = {
@@ -248,6 +272,8 @@ class Dev(Base):
 
     DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
     WSGI_APPLICATION = 'LAMA_ucup.wsgi.application'
+    CELERY_BROKER_URL = 'redis://redis:6379'
+    CELERY_RESULT_BACKEND = 'redis://redis:6379'
 
     DATABASES = {
         'default': {
@@ -315,12 +341,13 @@ class Dev(Base):
         "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
     }
 
-    LANGUAGE_CODE = 'ru'
 
-    TIME_ZONE = 'UTC'
+    LANGUAGE_CODE = 'ru-ru'
+
+    TIME_ZONE = 'Asia/Tomsk'
 
     USE_I18N = True
-
+    # USE_L10N = True
     USE_TZ = True
 
     STATIC_URL = 'static/'
@@ -328,6 +355,26 @@ class Dev(Base):
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
     STATICFILES_DIRS = ()
+
+    KAFKA_CONFIG = {
+        'bootstrap.servers': env('KAFKA_SERVERS'),
+        'group.id': env('KAFKA_GROUP_ID'),
+        'auto.offset.reset': 'earliest'
+    }
+    # ------- Kafka's topic for producing -------
+    # KAFKA_SERVICE_TOPIC = env('KAFKA_SERVICE_TOPIC')
+
+    # ------- Kafka's topics for consuming -------
+    VENDOR_TOPIC_NAME = env('VENDOR_TOPIC_NAME')
+    PRODUCT_TOPIC_NAME = env('PRODUCT_TOPIC_NAME')
+    # ASSORTMENT_TOPIC_NAME = env('ASSORTMENT_TOPIC_NAME')
+    CATEGORY_TOPIC_NAME = env('CATEGORY_TOPIC_NAME')
+    INVOICES_TOPIC_NAME = env('INVOICES_TOPIC_NAME')
+    INVOICE_LINES_TOPIC_NAME = env('INVOICE_LINES_TOPIC_NAME')
+    CUSTOMER_TOPIC_NAME = env('CUSTOMER_TOPIC_NAME')
+    # ----- Partition for producing in Kafka's topic -----
+    KAFKA_SERVICE_PARTITION = env('KAFKA_SERVICE_PARTITION')
+
 
 
 class Docker(Base):

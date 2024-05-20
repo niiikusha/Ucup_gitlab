@@ -33,3 +33,43 @@ services:
     ports:
       - "5090:80"
     user: root
+
+  celeryworker:
+    image: gitlab.lama.tomsk.ru:5050/lamaservices/management-of-commercial-terms-of-counterparties/ucup_backewrfvervrvrv:celeryworker-test
+    container_name: ucup_celeryworker
+    env_file: ./.env
+    restart: unless-stopped
+    links:
+        - db
+        - redis
+    depends_on:
+        - db
+        - redis
+        - app
+    command:
+        celery -A ucup.celeryapp worker
+        --loglevel INFO
+        --concurrency 4
+        --max-tasks-per-child 100
+
+  celerybeat:
+    image: gitlab.lama.tomsk.ru:5050/lamaservices/management-of-commercial-terms-of-counterparties/ucup_backewrfvervrvrv:celerybeat-test
+    container_name: ucup_celerybeat
+    env_file: ./.env
+    restart: unless-stopped
+    links:
+        - db
+        - redis
+    depends_on:
+        - db
+        - redis
+        - app
+    command:
+        celery -A ucup.celeryapp beat
+        --loglevel INFO
+
+  redis:
+    container_name: ucup_redis
+    image: redis:latest
+    expose:
+        - "6379"

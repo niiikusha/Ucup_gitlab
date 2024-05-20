@@ -12,6 +12,131 @@ from django.dispatch import receiver
 from django.db.models.signals import pre_save
 from django.forms import ValidationError
 
+class KuCustomer(models.Model):
+    kuType =  ( 
+        ('Ретро-бонус', 'Ретро-бонус'),
+        ('Услуга', 'Услуга')
+    )
+    payMethod = ( 
+        ('Взаимозачет', 'Взаимозачет'),
+        ('Оплата', 'Оплата')
+    )
+    ku_id = models.CharField('ku_id', primary_key=True, editable=False)  # Field name made lowercase.
+    vendor_id = models.CharField('Vendor', blank=True, null=True)  # Field name made lowercase. 
+    entity_id = models.CharField('Entity', blank=True, null=True )  # Field name made lowercase.
+    period = models.CharField('Period', max_length=10)  # Field name made lowercase.
+    date_start = models.DateField('Date_start')  # Field name made lowercase.
+    date_end = models.DateField('Date_end', blank=True, null=True)  # Field name made lowercase.
+    status = models.CharField('Status', max_length=20)  # Field name made lowercase.
+    date_actual = models.DateField('Date_actual', blank=True, null=True)  # Field name made lowercase.
+    base = models.FloatField('Base', blank=True, null=True)  # Field name made lowercase.
+    percent = models.IntegerField('Percent', blank=True, null=True)  # Field name made lowercase.
+    graph_exists = models.BooleanField('graph_Exists', blank=True, null=True)  # Field name made lowercase.
+    description = models.CharField('Описание', blank=True, null=True)
+    contract = models.CharField('Контракт', blank=True, null=True)
+    product_type = models.CharField('Тип продукта', blank=True, null=True)
+    docu_account = models.CharField('Номер счета в договоре', blank=True, null=True)
+    docu_name =  models.CharField('Название договора', blank=True, null=True)
+    docu_number = models.CharField('Номер договора', blank=True, null=True)
+    docu_date = models.DateField('Дата договора', blank=True, null=True)
+    docu_subject = models.CharField('Предмет договора', blank=True, null=True)
+    tax = models.BooleanField('Налог', blank=True, null=True)
+    exclude_return = models.BooleanField('Исключать возвраты', blank=True, null=True)
+    negative_turnover =  models.BooleanField('Отрицательный товарооборот', blank=True, null=True)
+    ku_type = models.CharField(choices=kuType ,  verbose_name='Тип КУ', blank=True, null=True) 
+    pay_method  = models.CharField(choices=payMethod ,  verbose_name='Способ оплаты', blank=True, null=True) 
+    subsidiaries = models.BooleanField('Дочерние компании', blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        
+        db_table = 'ku_customer'
+
+class KuGraphCustomer(models.Model):
+    graph_id = models.AutoField('Graph_id', primary_key=True)  # Используем AutoField для автоматического заполнения  # Field name made lowercase.
+    vendor_id = models.CharField('Vendor', blank=True, null=True)  # Field name made lowercase.
+    ku_id = models.CharField('ku', blank=True, null=True)  # Field name made lowercase.
+    period = models.CharField('Period', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    date_start = models.DateField('Date_start', blank=True, null=True)  # Field name made lowercase.
+    date_end = models.DateField('Date_end', blank=True, null=True)  # Field name made lowercase.
+    date_calc = models.DateTimeField('Date_calc', blank=True, null=True)  # Field name made lowercase.
+    date_accrual = models.DateField('Дата начисления', blank=True, null=True)  # Field name made lowercase.
+    status = models.CharField('Status', max_length=20)  # Field name made lowercase.
+    sum_calc = models.FloatField('Sum_calc', blank=True, null=True)  # Field name made lowercase.
+    sum_bonus = models.FloatField('Sum_bonus', blank=True, null=True)  # Field name made lowercase.
+    percent = models.IntegerField('Percent', blank=True, null=True)  # Field name made lowercase.
+    sum_approved = models.FloatField('Sum_approved', blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        
+        db_table = 'ku_graph_cuctomer'
+
+class Service(models.Model):
+    service_code = models.CharField('Код услуги',  blank=True, null=True ) 
+    service_name = models.CharField('Название',  blank=True, null=True)  
+
+    class Meta:
+        
+        db_table = 'service'
+
+class Article(models.Model):
+    article_code = models.CharField('Код статьи',  blank=True, null=True ) 
+    article_name = models.CharField('Название',  blank=True, null=True)  
+
+    class Meta:
+        
+        db_table = 'article'
+
+class PlaceService(models.Model):
+    shop_code = models.CharField('Код магазина',  blank=True, null=True ) 
+    shop_name = models.CharField('Название',  blank=True, null=True)  
+    address = models.CharField('Адрес' ,  blank=True, null=True)  
+
+    class Meta:
+        
+        db_table = 'place_service'
+
+class PriceList(models.Model):
+    date_action = models.DateField('Действует до', blank=True, null=True )
+    date_expiration  = models.DateField('истечение срока', blank=True, null=True )
+    article_code = models.CharField('Код статьи',  blank=True, null=True ) 
+    article_name = models.CharField('Название',  blank=True, null=True)   
+    price = models.FloatField('Стоимость',  blank=True, null=True) 
+    unit = models.CharField('Единица измерения',  blank=True, null=True ) 
+
+    class Meta:
+        
+        db_table = 'price_list'
+
+class IncludedService(models.Model):
+    article_code= models.CharField('Код статьи',  blank=True, null=True ) 
+    article_name = models.CharField('Название статьи',  blank=True, null=True)  
+    service_code = models.CharField('Код услуги',  blank=True, null=True ) 
+    service_name = models.CharField('Название услуги',  blank=True, null=True)  
+    ratio = models.FloatField('Коэффициент', blank=True, null=True)
+    ku_id = models.CharField('КУ клиента',  blank=True, null=True)  
+
+    class Meta:
+        
+        db_table = 'included_service'
+
+class Customer(models.Model):
+    entity_id = models.CharField('Entity', blank=True, null=True)  # Field name made lowercase.
+    customer_id = models.CharField('vendor_id', primary_key=True , max_length=20)  # Field name made lowercase.
+    name = models.CharField('Name', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    urastic_name = models.CharField('UrasticName', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    inn_kpp = models.CharField('INN/KPP', max_length=121, blank=True, null=True)  # Field name made lowercase. Field renamed to remove unsuitable characters.
+    director_name = models.CharField('DirectorName', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    urastic_adress = models.CharField('UrasticAdress', max_length=250, blank=True, null=True)  # Field name made lowercase.
+    account = models.CharField('Account', max_length=100, blank=True, null=True)  # Field name m2ade lowercase.
+    bank_name = models.CharField('BankName', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    bank_bik = models.CharField('BankBik', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    corr_account = models.CharField('CorrAccount', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    dir_party = models.CharField('DirParty', blank=True, null=True)  # Field name made lowercase.
+    #organization_code = models.CharField('код организации', blank=True, null=True)
+
+    class Meta:
+       
+        db_table = 'customer'
 
 class ClassifierTest(models.Model):
     classifier_code = models.CharField(max_length=12, unique=True)
@@ -24,156 +149,155 @@ class ClassifierTest(models.Model):
 
     def __str__(self):
         return f"Код классификатора: {self.classifier_code}, Имя: {self.name}, Код родителя: {self.parent_code}"
-    
-# class Article(models.Model):
-#     name = models.CharField(blank=True, null=True)
-#     id = models.CharField(primary_key=True)
-
-#     class Meta:
-        
-#         db_table = 'Article'
 
 
-# class Assortment(models.Model):
-#     product_id = models.CharField(db_column='Product_Id', blank=True, null=True)  
-#     vendor_id = models.CharField(db_column='Vendor_Id', blank=True, null=True)  
-#     entity_id = models.CharField(db_column='Entity_Id', blank=True, null=True)  
-
-#     class Meta:
+class Assortment(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    product_key = models.CharField('Product_Id', blank=True, null=True)  # Field name made lowercase.
+    external_code= models.CharField('', blank=True, null=True)  # Field name made lowercase.
+    type_assort = models.CharField('', blank=True, null=True)  # Field name made lowercase.
+    store_key = models.BigIntegerField('', blank=True, null=True)
+    primaryAccountNum = models.FloatField("primaryAccountNum", blank=True, null=True)
+    avg_sales = models.FloatField("avg_sales", blank=True, null=True)
+    retail_price = models.FloatField("retail_price", blank=True, null=True)
+    multiplicity = models.FloatField("multiplicity", blank=True, null=True)
+    class Meta:
        
-#         db_table = 'Assortment'
+        db_table = 'assortment'
 
 
-class BrandClassifier(models.Model):
-    external_code = models.CharField('Внешний код')  
-    brand_name = models.CharField('Название Бренда')  
-    producer_name = models.CharField('Имя производителя')  
+class Brandclassifier(models.Model):
+    classifierid = models.CharField(db_column='ClassifierID', primary_key=True)  # Field name made lowercase.
+    brand_name = models.CharField(db_column='Brand_name')  # Field name made lowercase.
+    producer_name = models.CharField(db_column='Producer_name')  # Field name made lowercase.
 
     class Meta:
         
         db_table = 'brand_classifier'
 
-    def __str__(self):
-        return self.brand_name
-
 
 class Classifier(models.Model):
-    id = models.CharField('id', primary_key=True)  
-    l1 = models.CharField('Код первого уровня')  
-    l1_name = models.CharField('Название первого уровня')  
-    l2 = models.CharField('Код второго уровня')  
-    l2_name = models.CharField('Название первого уровня')  
-    l3 = models.CharField('Код третьего уровня')  
-    l3_name = models.CharField('Название третьего уровня')  
-    l4 = models.CharField('Код четвертого уровня')  
-    l4_name = models.CharField('Название четвертого уровня')  
+    classifierid = models.CharField('ClassifierID', primary_key=True)  # Field name made lowercase.
+    l1 = models.CharField(db_column='L1')  # Field name made lowercase.
+    l1_name = models.CharField(db_column='L1_name')  # Field name made lowercase.
+    l2 = models.CharField(db_column='L2')  # Field name made lowercase.
+    l2_name = models.CharField(db_column='L2_name')  # Field name made lowercase.
+    l3 = models.CharField(db_column='L3')  # Field name made lowercase.
+    l3_name = models.CharField(db_column='L3_name')  # Field name made lowercase.
+    l4 = models.CharField(db_column='L4')  # Field name made lowercase.
+    l4_name = models.CharField(db_column='L4_name')  # Field name made lowercase.
 
     class Meta:
         
         db_table = 'classifier'
 
-    def __str__(self):
-        return self.l4_name
 
+# class Customer(models.Model):
+#     code = models.CharField('Код', blank=True, null=True)  # Field name made lowercase.
+#     entity_id = models.CharField('Код компании', blank=True, null=True)  # Field name made lowercase.
+#     name = models.CharField('Название', blank=True, null=True)  # Field name made lowercase.
+#     organization_code = models.CharField('Код организации', blank=True, null=True)
+
+#     class Meta:
+       
+#         db_table = 'customer'
+
+class Category(models.Model):
+    hierarchy_key_id = models.BigIntegerField('иерархия', blank=True, null=True)  # Field name made lowercase.
+    category_parent = models.BigIntegerField('Род. категория', blank=True, null=True)  # Field name made lowercase.
+    name = models.CharField('Наименование')  # Field name made lowercase.
+    external_code = models.CharField('Внешний код')  # Field name made lowercase.
+    lvl = models.IntegerField('Уровень', blank=True, null=True)  # Field name made lowercase.
+    external_id = models.BigIntegerField('Внешний id', blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        
+        db_table = 'category'
 
 class Entity(models.Model):
-    external_code = models.CharField('Внешний ключ', max_length=4)  
-    director_name = models.CharField('Имя директора', max_length=100, blank=True, null=True)  
-    urastic_name = models.CharField('Полное название', max_length=100)  
-    name = models.CharField('Название организации', max_length=100)  
-    urastic_address = models.CharField('Адрес', max_length=250, blank=True, null=True)  
-    inn_kpp = models.CharField('ИНН\КПП', max_length=121, blank=True, null=True)   
-    bank_name = models.CharField('Название банка', max_length=100)  
-    account = models.CharField('Номер счета', max_length=35)  
-    corr_account = models.CharField('Кор. Счет', max_length=35)  
-    bank_bink = models.CharField('BankBink', max_length=15)  
-    merge_id = models.CharField('MergeID', max_length=4, blank=True, null=True)  
+    entity_id = models.CharField('entity_id', primary_key=True, max_length=4)  # Field name made lowercase.
+    director_name = models.CharField('DirectorName', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    urastic_name = models.CharField('UrasticName', max_length=100)  # Field name made lowercase.
+    name = models.CharField('Name', max_length=100)  # Field name made lowercase.
+    urastic_address = models.CharField('UrasticAddress', max_length=250, blank=True, null=True)  # Field name made lowercase.
+    inn_kpp = models.CharField('INN\\KPP', max_length=121, blank=True, null=True)  # Field name made lowercase. Field renamed to remove unsuitable characters.
+    bank_name = models.CharField('BankName', max_length=100)  # Field name made lowercase.
+    account = models.CharField('Account', max_length=35)  # Field name made lowercase.
+    corr_account = models.CharField('CorrAccount', max_length=35)  # Field name made lowercase.
+    bank_bink = models.CharField('BankBink', max_length=15)  # Field name made lowercase.
+    merge_id = models.CharField('MergeID', max_length=4, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         
-        db_table = "entity"
-
-    def __str__(self):
-        return self.pk
-
-class IncludedCondition(models.Model):  
-    ku_key = models.ForeignKey('Ku', on_delete=models.CASCADE,  db_constraint=False, verbose_name='КУ', blank=True)  #сделать ключи для бренда и продюсера и продукта
-    item_type = models.CharField('item_type', blank=True, null=True)  
-    item_code = models.CharField('item_code', blank=True, null=True)  
-    item_name = models.CharField('item_name', blank=True, null=True)   
-    brand = models.CharField('brand', blank=True, null=True)  
-    producer = models.CharField('producer', blank=True, null=True)  
-
-    class Meta:
-        db_table = 'included_condition'
-    
-    def __str__(self):
-        return self.item_code
-
+        db_table = 'entity'
 
 class IncludedProduct(models.Model):
-    # inc_prod_list = models.BigAutoField('Inc_prod_list', primary_key=True)
-    graph_key = models.ForeignKey('KuGraph',  on_delete=models.CASCADE,  db_constraint=False, verbose_name='Номер графика', blank=True, null=True)  
-    product_key = models.ForeignKey('Product', on_delete=models.CASCADE,  db_constraint=False, verbose_name='Код продукта', blank=True, null=True)  
-    rec_key = models.ForeignKey('Venddocline', on_delete=models.CASCADE,  db_constraint=False, verbose_name='Номер накладной', blank=True, null = True) 
-    amount = models.FloatField('Сумма', blank=True, null=True)  
-    invoice_id = models.CharField('Номер накладной', blank=True, null=True)     
+    #ku_id = models.CharField(db_column='KU_id', blank=True, null=True)  # Field name made lowercase.
+    ku_id = models.ForeignKey('Ku', on_delete=models.CASCADE, db_column='ku_id', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
+    item_type = models.CharField('Item_type', blank=True, null=True)  # Field name made lowercase.
+    item_code = models.CharField('Item_code', blank=True, null=True)  # Field name made lowercase.
+    item_name = models.CharField('Item_name', blank=True, null=True)  # Field name made lowercase.
+    in_prod_id = models.BigAutoField(db_column ='in_prod_id', primary_key=True)  # Field name made lowercase.
+    brand = models.CharField('Brand', blank=True, null=True)  # Field name made lowercase.
+    producer = models.CharField('Producer', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-
         db_table = 'included_product'
+
+
+class IncludedProductList(models.Model):
+    graph_id = models.BigIntegerField('Graph_id', blank=True, null=True)  # Field name made lowercase.
+    product_id = models.ForeignKey('Product', models.DO_NOTHING, db_column='product_id', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
+    amount = models.FloatField('Amount', blank=True, null=True)  # Field name made lowercase.
+    invoice_id = models.CharField('Invoice_id', blank=True, null=True)  # Field name made lowercase.
+    inc_prod_list = models.BigAutoField(db_column='inc_prod_list', primary_key=True)  # Field name made lowercase.
+    rec_id = models.ForeignKey('Venddoclines', models.DO_NOTHING, db_column='rec_id', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
+    qty = models.IntegerField('Количество', blank=True, null=True)
     
-    def __str__(self):
-        return self.product_key
+    class Meta:
+
+        db_table = 'included_product_list'
+
 
 class Vendor(models.Model):
-    external_code = models.CharField('Внешний код поставщика', max_length=20)  
-    entity_code = models.CharField('Внешний код поставщика', blank = True, null = True) 
-    entity_key = models.ForeignKey(Entity, on_delete=models.CASCADE,  db_constraint=False, verbose_name='Номер юр. лица', blank=True, null = True) 
-    # entity_key = models.CharField('Внешний код поставщика', blank = True, null = True) 
-    name = models.CharField('Имя поставщика', max_length=100, blank=True, null=True)  
-    urastic_name = models.CharField('Полное имя', max_length=100, blank=True, null=True)  
-    inn_kpp = models.CharField('INN/KPP', max_length=121, blank=True, null=True)  
-    director_name = models.CharField('Имя директора', max_length=100, blank=True, null=True)  
-    urastic_adress = models.CharField('Адрес', max_length=250, blank=True, null=True)  
-    account = models.CharField('Счет', max_length=35, blank=True, null=True)  
-    bank_name = models.CharField('Название банка', max_length=100, blank=True, null=True)  
-    bank_bik = models.CharField('БИК банка', max_length=15, blank=True, null=True)  
-    corr_account = models.CharField('Номер счета', max_length=35, blank=True, null=True)  
-    dir_party = models.BigIntegerField('DirParty', blank=True, null=True)  
+    vendor_id = models.CharField('vendor_id', primary_key=True, max_length=20)  # Field name made lowercase.
+    entity_id = models.ForeignKey(Entity, models.DO_NOTHING, db_column = 'entity_id', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
+    name = models.CharField('Name', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    urastic_name = models.CharField('UrasticName', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    inn_kpp = models.CharField('INN/KPP', max_length=121, blank=True, null=True)  # Field name made lowercase. Field renamed to remove unsuitable characters.
+    director_name = models.CharField('DirectorName', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    urastic_adress = models.CharField('UrasticAdress', max_length=250, blank=True, null=True)  # Field name made lowercase.
+    account = models.CharField('Account', max_length=35, blank=True, null=True)  # Field name made lowercase.
+    bank_name = models.CharField('BankName', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    bank_bik = models.CharField('BankBik', max_length=15, blank=True, null=True)  # Field name made lowercase.
+    corr_account = models.CharField('CorrAccount', max_length=35, blank=True, null=True)  # Field name made lowercase.
+    dir_party = models.BigIntegerField('DirParty', blank=True, null=True)  # Field name made lowercase.
+    organization_code = models.CharField('код организации', blank=True, null=True)
 
     class Meta:
-        
+         
         db_table = 'vendor'
 
-    def __str__(self):
-        return self.external_code
-
 class Ku(models.Model):
-    statusKu = ( 
-        ('Create', 'Создано'),
-        ('Valid', 'Действует'),
-        ('Сancel', 'Отменено'),
-        ('Сlose', 'Закрыто'),
-    ) 
     kuType =  ( 
-        ('RetroBonus', 'Ретро-бонус'),
-        ('Service', 'Услуга')
+        ('Ретро-бонус', 'Ретро-бонус'),
+        ('Услуга', 'Услуга')
     )
     payMethod = ( 
-        ('Mutual', 'Взаиморасчет'),
-        ('Payment', 'Оплата')
+        ('Взаимозачет', 'Взаимозачет'),
+        ('Оплата', 'Оплата')
     )
-    ku_id = models.CharField('Ku_id', primary_key=True, editable=False)  
-    vendor_key = models.ForeignKey(Vendor,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Поставщик') 
-    entity_key = models.ForeignKey(Entity,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Юр. лицо')
-    period = models.CharField('Период', max_length=10)  
-    date_start = models.DateField('Дата начала')  
-    date_end = models.DateField('Дата окончания', blank=True, null=True)   
-    date_actual = models.DateField('Актуальная дата', blank=True, null=True)  
-    percent = models.IntegerField('Процент', blank=True, null=True) 
-    status_ku = models.CharField(choices=statusKu,  verbose_name='Статус ку', default='Create') 
-    graph_exists = models.BooleanField('Существование графика', blank=True, null=True)  
+    ku_id = models.CharField('ku_id', primary_key=True, editable=False)  # Field name made lowercase.
+    vendor_id = models.ForeignKey(Vendor, models.DO_NOTHING, db_column='vendor_id', db_constraint=False)  # Field name made lowercase. 
+    entity_id = models.ForeignKey(Entity, models.DO_NOTHING, db_column='entity_id', db_constraint=False,)  # Field name made lowercase.
+    period = models.CharField('Period', max_length=10)  # Field name made lowercase.
+    date_start = models.DateField('Date_start')  # Field name made lowercase.
+    date_end = models.DateField('Date_end', blank=True, null=True)  # Field name made lowercase.
+    status = models.CharField('Status', max_length=20)  # Field name made lowercase.
+    date_actual = models.DateField('Date_actual', blank=True, null=True)  # Field name made lowercase.
+    base = models.FloatField('Base', blank=True, null=True)  # Field name made lowercase.
+    percent = models.IntegerField('Percent', blank=True, null=True)  # Field name made lowercase.
+    graph_exists = models.BooleanField('graph_Exists', blank=True, null=True)  # Field name made lowercase.
     description = models.CharField('Описание', blank=True, null=True)
     contract = models.CharField('Контракт', blank=True, null=True)
     product_type = models.CharField('Тип продукта', blank=True, null=True)
@@ -185,177 +309,167 @@ class Ku(models.Model):
     tax = models.BooleanField('Налог', blank=True, null=True)
     exclude_return = models.BooleanField('Исключать возвраты', blank=True, null=True)
     negative_turnover =  models.BooleanField('Отрицательный товарооборот', blank=True, null=True)
-    ku_type = models.CharField(choices=kuType ,  verbose_name='Тип КУ', default='RetroBonus') 
-    pay_method  = models.CharField(choices=payMethod ,  verbose_name='Способ оплаты', default='Mutual') 
-   
+    ku_type = models.CharField(choices=kuType ,  verbose_name='Тип КУ', blank=True, null=True) 
+    pay_method  = models.CharField(choices=payMethod ,  verbose_name='Способ оплаты', blank=True, null=True) 
+    subsidiaries = models.BooleanField('Дочерние компании', blank=True, null=True)  # Field name made lowercase.
+
     class Meta:
         
         db_table = 'ku'
 
-    def __str__(self):
-        return self.ku_id
+class BonusCondition(models.Model):
+    fix = models.BooleanField(blank=True, null=True)
+    criterion = models.FloatField(blank=True, default = 0.0)
+    percent_sum = models.FloatField(blank=True, null=True)
+    ku_key_id = models.CharField(blank=True, null=True)
+    id = models.BigAutoField(primary_key=True)
+
+    class Meta:
+        db_table = 'bonus_condition'
+
 
 class KuGraph(models.Model):
-    statusGraph = ( 
-        ('Planned', 'Запланировано'),
-        ('Calculated', 'Рассчитано'),
-        ('Approved', 'Утверждено'),
-    ) 
-    vendor_key = models.ForeignKey(Vendor,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Поставщик')  
-    ku_key = models.ForeignKey(Ku,on_delete=models.CASCADE,  db_constraint=False, verbose_name='Коммерческое условие')   
-    period = models.CharField('Период', max_length=10)  
-    date_start = models.DateField('Дата начала')  
-    date_end = models.DateField('Дата окончания')  
-    date_calc = models.DateField('Дата расчета')  
-    status_graph = models.CharField(choices=statusGraph, verbose_name='Статус графика', default='Planned')   
-    sum_calc = models.FloatField('Рассчитанная сумма', blank=True, null=True)  
-    sum_bonus = models.FloatField('Сумма бонуса', blank=True, null=True)  
-    percent = models.IntegerField('Процент', blank=True, null=True)  
-    sum_approved = models.FloatField('Утвержденная сумма', blank=True, null=True)  
+    graph_id = models.AutoField('Graph_id', primary_key=True)  # Используем AutoField для автоматического заполнения  # Field name made lowercase.
+    vendor_id = models.ForeignKey('Vendor', models.DO_NOTHING, db_column='vendor_id', db_constraint=False,)  # Field name made lowercase.
+    ku_id = models.ForeignKey(Ku, on_delete=models.CASCADE, db_column='ku_id', db_constraint=False,)  # Field name made lowercase.
+    period = models.CharField('Period', max_length=10)  # Field name made lowercase.
+    date_start = models.DateField('Date_start')  # Field name made lowercase.
+    date_end = models.DateField('Date_end')  # Field name made lowercase.
+    date_calc = models.DateTimeField('Date_calc', blank=True, null=True)  # Field name made lowercase.
+    date_accrual = models.DateField('Дата начисления', blank=True, null=True)  # Field name made lowercase.
+    status = models.CharField('Status', max_length=20)  # Field name made lowercase.
+    sum_calc = models.FloatField('Sum_calc', blank=True, null=True)  # Field name made lowercase.
+    sum_bonus = models.FloatField('Sum_bonus', blank=True, null=True)  # Field name made lowercase.
+    percent = models.IntegerField('Percent', blank=True, null=True)  # Field name made lowercase.
+    sum_approved = models.FloatField('Sum_approved', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         
-        db_table = 'graph_ku'
+        db_table = 'ku_graph'
 
 
 class Product(models.Model):
-    external_code = models.CharField('Внешний код продукта')  
-    classifier_key = models.ForeignKey(Classifier, on_delete=models.CASCADE,  db_constraint=False, verbose_name='Категория', blank=True, null=True)  
-    brand_key = models.ForeignKey(BrandClassifier, on_delete=models.CASCADE,  db_constraint=False, verbose_name='Бренд', blank=True, null=True)  
-    name = models.CharField('Название продукта', blank=True, null=True)  
-
+    itemid = models.CharField('itemId', primary_key=True)  # Field name made lowercase.
+    classifier = models.ForeignKey(Classifier, models.DO_NOTHING, db_column='classifier_id', blank=True, null=True, db_constraint=False)  # Field name made lowercase.
+    brand = models.ForeignKey(Brandclassifier, models.DO_NOTHING, db_column='brand_id', blank=True, null=True, db_constraint=False)  # Field name made lowercase.
+    name = models.CharField('Name', blank=True, null=True)  # Field name made lowercase.
+    external_id = models.BigIntegerField('Внешний id', blank=True, null=True)
+    brand_name = models.CharField('Название бренда', blank=True, null=True)  # Field name made lowercase.
+    category_id = models.BigIntegerField('ключ категории', blank=True, null=True)
+    category_name = models.CharField('Название категории', blank=True, null=True)  # Field name made lowercase.
+    group_category_id = models.BigIntegerField('id категории группы', blank=True, null=True)
+    sub_group_category_id = models.BigIntegerField('Внешний id', blank=True, null=True)
+    price_segment = models.CharField('Property 1', blank=True, null=True)
+    
     class Meta:
         
         db_table = 'product'
 
 
-class VendDoc(models.Model):
-    vendor_key = models.ForeignKey(Vendor, models.DO_NOTHING, db_constraint=False, verbose_name='Поставщик')  
-    entity_key = models.ForeignKey(Entity, models.DO_NOTHING, db_constraint=False, verbose_name='Юр лицо')  
-    doc_id = models.CharField('Doc_id', primary_key=True)  
-    doc_type = models.CharField('DocType')  
-    invoice_name = models.CharField('Invoice_name')  
-    invoice_number = models.CharField('Invoice_number')  
-    invoice_date = models.DateField('Invoice_date')  
-    purch_number = models.CharField('Purch_number')  
-    purch_date = models.DateField('Purch_date')  
-    invoice_status = models.CharField('InvoiceStatus', blank=True, null=True)  
-    invoice_id = models.BigIntegerField('Invoice_id', null=True)  
-    products_amount = models.FloatField('Products_amount', blank=True, null=True)  
-    
+class Venddoc(models.Model):
+    vendor_id = models.ForeignKey('Vendor', models.DO_NOTHING, db_column='vendor_id', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
+    entity_id = models.ForeignKey(Entity, models.DO_NOTHING, db_column='entity_id', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
+    docid = models.CharField('docid', primary_key=True)  # Field name made lowercase.
+    doctype = models.CharField('DocType', blank=True, null=True)  # Field name made lowercase.
+    invoice_name = models.CharField('Invoice_name', blank=True, null=True)  # Field name made lowercase.
+    invoice_number = models.CharField('Invoice_number', blank=True, null=True)  # Field name made lowercase.
+    invoice_date = models.DateField('Invoice_date', blank=True, null=True)  # Field name made lowercase.
+    purch_number = models.CharField('Purch_number', blank=True, null=True)  # Field name made lowercase.
+    purch_date = models.DateField('Purch_date', blank=True, null=True)  # Field name made lowercase.
+    invoice_status = models.CharField('InvoiceStatus', blank=True, null=True)  # Field name made lowercase.
+    invoice_id = models.BigIntegerField('Invoice_id', blank=True, null=True)  # Field name made lowercase.
+    product_amount = models.FloatField('Products_amount', blank=True, null=True)  # Field name made lowercase.
+    purchase_type = models.CharField('purch type', blank=True, null=True)
+    fully_factured = models.CharField('fully factured', blank=True, null=True)
+
     class Meta:
        
         db_table = 'vend_doc'
+ 
+class ExcludedVenddoc(models.Model):
+    ku_id = models.ForeignKey('Ku', on_delete=models.CASCADE, db_column='ku_id', blank=True, null=True, db_constraint=False,)
+    docid = models.ForeignKey(Venddoc, on_delete=models.CASCADE, db_column='docid', db_constraint=False, blank=True, null=True)
+    id = models.BigAutoField(primary_key=True)
 
-    # def save_venddoclines_to_included_products(self, venddoclines_rows, graph_id):
-    #     """
-    #     Сохранить данные из venddoclines_rows в IncludedProductsList.
-    #     """
-    #     if venddoclines_rows is not None:
-    #         for venddoclines_row in venddoclines_rows:
-    #                 product_id_id = venddoclines_row.get('product_id_id')
-    #                 recid = venddoclines_row.get('recid')
-    #         # Получите экземпляр Products по идентификатору
-    #                 product_instance = Products.objects.get(itemid=product_id_id)
-    #                 rec_id_instance = Venddoclines.objects.get(recid=recid)
-            
-    #                 included_product = IncludedProductsList(
-    #                     product_id=product_instance,
-    #                     invoice_id = venddoclines_row.get('docid_id'),
-    #                     amount = venddoclines_row.get('amount'),
-    #                     graph_id = graph_id,
-    #                     rec_id =  rec_id_instance,
-    #                 )
-    #                 print('invoice_id', venddoclines_row.get('docid'))
-    #                 included_product.save()
-    
-    # def products_amount_sum_in_range(self, graph_id):
-    #     """
-    #     Рассчитать сумму Amount в указанном диапазоне дат и для указанных vendor_id, entity_id и graph_id.
-    #     """
-    #     return (
-    #         IncludedProductsList.objects
-    #         .filter(
-    #             graph_id=graph_id,
-    #         )
-    #         .aggregate(sum_amount=models.Sum('amount'))['sum_amount'] or 0
-    #     )
+    class Meta:
+        db_table = 'excluded_vend_doc'
 
-    # def products_amount_sum_in_range_vse(self, start_date, end_date, vendor_id, entity_id, graph_id):
-    #     """
-    #     Найти строки накладных, которые подходят по условиям
-    #     """
-    #     graph_instance = KuGraph.objects.get(graph_id=graph_id)
-    #     included_condition_list = IncludedProducts.objects.filter(ku_id=graph_instance.ku_id)
-    #     included_condition_item_code = IncludedProducts.objects.filter(ku_id=graph_instance.ku_id)
-       
-    #     venddoc_rows = Venddoc.objects.filter(
-    #         vendor_id=vendor_id,
-    #         entity_id=entity_id,
-    #         invoice_date__gte=start_date,
-    #         invoice_date__lte=end_date
-    #     )
+class ExcludedProduct(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    item_type = models.CharField('Item_type', blank=True, null=True)  
+    item_code = models.CharField('Item_code', blank=True, null=True)  
+    item_name = models.CharField('Item_name', blank=True, null=True)  
+    brand = models.CharField('Brand', blank=True, null=True)  
+    producer = models.CharField('Producer', blank=True, null=True)  
+    ku_id = models.ForeignKey('Ku', on_delete=models.CASCADE, db_column='ku_id', blank=True, null=True, db_constraint=False,)
 
-    #     included_condition_list_all = included_condition_list.filter(item_type="Все")
-    #     included_condition_list_table= included_condition_list.filter(item_type="Таблица")
-    #     included_condition_list_category = included_condition_list.filter(item_type="Категория")
+    class Meta:
+        db_table = 'excluded_product'
 
-        
-    #     table_item_codes = included_condition_list_table.values_list('item_code', flat=True)
+class ExcludedProductList(models.Model):
+    graph_id = models.ForeignKey(KuGraph, on_delete=models.CASCADE, db_column='graph_id', db_constraint=False, blank=True, null=True)
+    product_id = models.ForeignKey('Product', models.DO_NOTHING, db_column='product_id', db_constraint=False, blank=True, null=True)
+    amount = models.FloatField('Amount', blank=True, null=True)  # Field name made lowercase.
+    invoice_id = models.CharField('Invoice_id', blank=True, null=True)  # Field name made lowercase.
+    rec_id = models.ForeignKey('Venddoclines', models.DO_NOTHING, db_column='rec_id', db_constraint=False, blank=True, null=True)
+    qty = models.IntegerField('Количество', blank=True, null=True)
 
-    #     category_item_codes = included_condition_list_category.values_list('item_code', flat=True) #берем коды в условиях типа Категория
-    #     category_item_codes = list(category_item_codes)
-        
-    #     category_classifiers = Classifier.objects.filter(l4__in=category_item_codes) #фильтруем Категории по тем которые даны в условиях
-    #     products_category = Products.objects.filter(classifier__in=category_classifiers) #фильтруем продукты по категориям которые получили выше
-    #     products_itemid_list =  products_category.values_list('itemid', flat=True) #получаем список подходящих продуктов под условия типа Категория
+    class Meta:
+        db_table = 'excluded_product_list'
 
-    #     docids = venddoc_rows.values_list('docid', flat=True)
 
-    #     if included_condition_list_all:
-    #         venddoclines_rows = Venddoclines.objects.filter(docid__in=venddoc_rows.values_list('docid', flat=True)).values()
-    #         return venddoclines_rows
 
-    #     elif included_condition_list_table and included_condition_list_category:
-    #         venddoclines_rows_table = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes).values()
-    #         print('venddoclines_rows_table ', venddoclines_rows_table )
-
-    #         venddoclines_rows_category = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
-    #         print('venddoclines_rows_category ', venddoclines_rows_category )
-    #         venddoclines_rows = venddoclines_rows_table.filter(product_id__in = products_itemid_list)
-    #         print(' venddoclines_rows', venddoclines_rows)
-    #         return venddoclines_rows
-
-    #     elif included_condition_list_table:
-    #         venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes).values()
-
-    #     elif included_condition_list_category:
-    #         venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
-
-        
-
-    #     print('venddoclines_rows', venddoclines_rows)
-    #     return venddoclines_rows
-    
-           
-
-class VendDocLine(models.Model):
-    rec_id = models.BigIntegerField(db_column='RecId', primary_key=True)  
-    doc_key = models.ForeignKey(VendDoc, models.DO_NOTHING, db_constraint=False, verbose_name='Накладная', blank=True, null=True)  
-    product_key = models.ForeignKey(Product, models.DO_NOTHING,  db_constraint=False, verbose_name='Продукт')  
-    qty = models.FloatField('QTY')  
-    amount = models.FloatField('Amount')  
-    amount_vat = models.FloatField('AmountVAT')  
-    vat = models.FloatField('VAT')  
-    invoice_id = models.BigIntegerField('Invoice_id', blank=True, null=True)  
+class Venddoclines(models.Model):
+    recid = models.BigAutoField('RecId', primary_key=True, blank=True, default=2567072)  # Field name made lowercase.
+    docid = models.ForeignKey(Venddoc, models.DO_NOTHING, db_column='docid', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
+    product_id = models.ForeignKey(Product, models.DO_NOTHING, db_column='product_id', db_constraint=False,)  # Field name made lowercase.
+    qty = models.FloatField('QTY', blank=True, null=True)  # Field name made lowercase.
+    amount = models.FloatField('Amount', blank=True, null=True)  # Field name made lowercase.
+    amount_vat = models.FloatField('AmountVAT', blank=True, null=True)  # Field name made lowercase.
+    vat = models.FloatField('VAT', blank=True, null=True)  # Field name made lowercase.
+    invoice_id = models.BigIntegerField('Invoice_id', blank=True, null=True)  # Field name made lowercase.
+    entity_id = models.CharField('entity_id', blank=True, null=True)
 
 
     class Meta:
         
-        db_table = 'vend_doc_line'
+        db_table = 'vend_doc_lines'
 
 
+class Manager(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    group = models.CharField(blank=True, null=True)
+    description = models.CharField(blank=True, null=True)
 
+    class Meta:
+        db_table = 'manager'
+
+class ManagerKu(models.Model):
+    manager_id = models.ForeignKey(Manager, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    ku_id = models.ForeignKey(Ku, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+
+    class Meta:
+        db_table = 'manager_ku'
+
+class ManagerKuCustomer(models.Model):
+    manager_id = models.ForeignKey(Manager, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    ku_id = models.ForeignKey(KuCustomer, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+
+    class Meta:
+        db_table = 'manager_ku_customer'
+
+class Official(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    counterparty_name = models.CharField(blank=True, null=True)
+    counterparty_post = models.CharField(blank=True, null=True)
+    counterparty_docu = models.CharField(blank=True, null=True)
+    entity_name = models.CharField(blank=True, null=True)
+    entity_post = models.CharField(blank=True, null=True)
+    entity_docu = models.CharField(blank=True, null=True)
+    ku_id = models.CharField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'official'
 
 
 class AuthGroup(models.Model):
