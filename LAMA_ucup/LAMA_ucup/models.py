@@ -22,8 +22,8 @@ class KuCustomer(models.Model):
         ('Оплата', 'Оплата')
     )
     ku_id = models.CharField('ku_id', primary_key=True, editable=False)  # Field name made lowercase.
-    vendor_id = models.CharField('Vendor', blank=True, null=True)  # Field name made lowercase. 
-    entity_id = models.CharField('Entity', blank=True, null=True )  # Field name made lowercase.
+    customer_id = models.ForeignKey('Vendor', models.DO_NOTHING, db_constraint=False, blank=True, null=True)  # Field name made lowercase. 
+    entity_id = models.ForeignKey('Entity', models.DO_NOTHING, db_constraint=False, blank=True, null=True) 
     period = models.CharField('Period', max_length=10)  # Field name made lowercase.
     date_start = models.DateField('Date_start')  # Field name made lowercase.
     date_end = models.DateField('Date_end', blank=True, null=True)  # Field name made lowercase.
@@ -53,8 +53,8 @@ class KuCustomer(models.Model):
 
 class KuGraphCustomer(models.Model):
     graph_id = models.AutoField('Graph_id', primary_key=True)  # Используем AutoField для автоматического заполнения  # Field name made lowercase.
-    vendor_id = models.CharField('Vendor', blank=True, null=True)  # Field name made lowercase.
-    ku_id = models.CharField('ku', blank=True, null=True)  # Field name made lowercase.
+    customer_id = models.ForeignKey('Vendor', models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    ku_id = models.ForeignKey(KuCustomer, models.DO_NOTHING, db_constraint=False, blank=True, null=True)  # Field name made lowercase.
     period = models.CharField('Period', max_length=10, blank=True, null=True)  # Field name made lowercase.
     date_start = models.DateField('Date_start', blank=True, null=True)  # Field name made lowercase.
     date_end = models.DateField('Date_end', blank=True, null=True)  # Field name made lowercase.
