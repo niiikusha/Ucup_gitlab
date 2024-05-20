@@ -226,6 +226,7 @@ class IncludedProduct(models.Model):
     item_name = models.CharField('Item_name', blank=True, null=True)  # Field name made lowercase.
     brand = models.CharField('Brand', blank=True, null=True)  # Field name made lowercase.
     producer = models.CharField('Producer', blank=True, null=True)  # Field name made lowercase.
+    id = models.BigAutoField('id', primary_key=True) 
 
     class Meta:
         db_table = 'included_product'
