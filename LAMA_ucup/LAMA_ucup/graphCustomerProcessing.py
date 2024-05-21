@@ -14,7 +14,7 @@ class GraphCustomerProcessing:
 
     @staticmethod
     @transaction.atomic
-    def create_date_graph(request):
+    def create_graph_customer(request):
         """
         Возвращает массив, состоящий из дат графика расчета
         """

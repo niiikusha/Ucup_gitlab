@@ -81,6 +81,8 @@ urlpatterns = [
     path('graph_create/', create_graph_new, name='create-graph'),
     path('graph_create_new/', create_graph_new, name='create-graph-new'),
 
+    path('graph_create_customer/', create_graph_customer, name='create-graph-customer'),
+
     path('product_list/', ProductListView.as_view()),
     path('product_filter', products_filter, name ='products_filter'),
 
