@@ -13,6 +13,145 @@ class GraphProcessing:
 
     @staticmethod
     @transaction.atomic
+    def create_date_graph(request):
+        """
+        Возвращает массив, состоящий из дат графика расчета
+        """
+        input_data = JSONParser().parse(request)
+        graph_exists = input_data.get('graph_exists')
+
+        if graph_exists == True:
+            return Response({'error': 'Графики уже существуют для этого ku_id'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        period = input_data.get('period')
+        date_start = input_data.get('date_start')
+        date_end_initial = input_data.get('date_end')
+
+        if input_data.get('date_actual'):
+            date_end_initial = input_data.get('date_actual')
+
+        year, month, day = map(int, date_start.split('-'))
+
+        graph_data_list = []
+
+        sum_bonus = 0
+        sum_calc = 0
+        date_accrual = 15
+        date_end = f"{year}-{month:02d}-{day:02d}"
+
+        if period == 'Месяц':
+            
+            while date_end < date_end_initial:
+                
+                last_day = calendar.monthrange(year, month)[1] #количество дней месяца
+
+                date_end = f"{year}-{month:02d}-{last_day:02d}"
+
+                if date_end > date_end_initial: #проверка последнего графика 
+                    date_end = date_end_initial
+
+                next_month = month % 12 + 1
+                next_month_year = year + (1 if next_month == 1 else 0) #проверка на переполнение месяцев
+
+                graph_data_list.append({
+                    'date_start': f"{year}-{month:02d}-{day:02d}",
+                    'date_end': date_end,
+                    'date_accrual': f"{next_month_year}-{next_month:02d}-{date_accrual}",
+                })
+
+                month = next_month
+                year = next_month_year
+                day = 1  
+
+        if period == 'Год':
+            
+            while date_end < date_end_initial:
+                
+                date_end = f"{year}-{12:02d}-{31:02d}"
+                month_start = month
+                month_calc = 1
+                year_calc = year + 1
+
+                if date_end > date_end_initial: 
+                    date_end = date_end_initial
+
+                    month_in_date_end = int(date_end_initial.split("-")[1])
+                    month_calc = month_in_date_end % 12 + 1
+                    year_calc = year + (1 if month_calc == 1 else 0)
+                
+                graph_data_list.append({
+                    'date_start': f"{year}-{month_start:02d}-{day:02d}",
+                    'date_end': date_end,
+                    'date_accrual': f"{year_calc}-{month_calc:02d}-{date_accrual}",
+                })
+
+                month = 1
+                month_start = 1
+                year += 1
+                day = 1  
+
+        if period == 'Полгода':
+
+            last_day = calendar.monthrange(year, month)[1] 
+            date_end = f"{year}-{month:02d}-{last_day:02d}"
+            date_start = f"{year}-{month:02d}-{day:02d}"
+            while date_end < date_end_initial:
+            
+                if month <= 6:
+                    date_end = f"{year}-{6:02d}-{30:02d}" 
+                    date_accrual= f"{year}-{7:02d}-{15:02d}" 
+                    month = 7
+                else:
+                    date_end = f"{year}-{12:02d}-{31:02d}"   
+                    date_accrual =  f"{year+1}-{1:02d}-{15:02d}" 
+                    month = 1
+
+                if date_end > date_end_initial: 
+                    date_end = date_end_initial
+
+                graph_data_list.append({
+                    'date_start': date_start,
+                    'date_end': date_end,
+                    'date_accrual': date_accrual,
+                })
+
+                if month <= 6:
+                    year += 1
+                    date_start = f"{year}-{1:02d}-{1:02d}" 
+                else:
+                    date_start = f"{year}-{7:02d}-{1:02d}" 
+
+        if period == 'Квартал':
+            
+            while date_end < date_end_initial:
+                
+                last_month_of_quarter = ((month - 1) // 3 + 1) * 3 #последний месяц квартала
+                
+                last_day = calendar.monthrange(year, last_month_of_quarter )[1] 
+
+                date_end = f"{year}-{last_month_of_quarter:02d}-{last_day:02d}"
+
+                if date_end > date_end_initial: #проверка последнего графика 
+                    date_end = date_end_initial
+
+                next_month = last_month_of_quarter % 12 + 1
+                next_month_year = year + (1 if next_month == 1 else 0) #проверка на переполнение месяцев
+            
+                graph_data_list.append({
+                    'date_start': f"{year}-{month:02d}-{day:02d}",
+                    'date_end': date_end,
+                    'date_accrual': f"{next_month_year}-{next_month:02d}-{date_accrual}",
+                })
+
+                # Переход к следующему месяцу
+                month = next_month
+                year = next_month_year
+                day = 1  
+        
+        return graph_data_list
+
+    @staticmethod
+    @transaction.atomic
     def create_graph(request):
         input_data = JSONParser().parse(request)
         graph_exists = input_data.get('graph_exists')
@@ -127,7 +266,7 @@ class GraphProcessing:
                 
                 last_month_of_quarter = ((month - 1) // 3 + 1) * 3 #последний месяц квартала
                 
-                last_day = calendar.monthrange(year, last_month_of_quarter )[1] #количество дней месяца # 1 квартал: январь1, февраль2, март3 2 квартал: 4 5 6, 3 квартал
+                last_day = calendar.monthrange(year, last_month_of_quarter )[1] 
 
                 date_end = f"{year}-{last_month_of_quarter:02d}-{last_day:02d}"
 

@@ -20,6 +20,7 @@ from django.db.models import OuterRef, Subquery
 from ..graphProcessing import GraphProcessing
 from ..kuProcessing import KuProcessing
 from ..kuCustomerProcessing import KuCustomerProcessing
+from ..graphCustomerProcessing import GraphCustomerProcessing
 from ..contractProcessing import ContractProcessing
 from ..kafka.consumer import Listener
 from django.db.models import Sum
@@ -1008,6 +1009,16 @@ def create_graph_new(request):
     try:
         graph_processing = GraphProcessing()
         return graph_processing.create_graph(request)
+    except Exception as ex:
+        response_data = {'error': 'Непредвиденная ошибка при создании графика: ' + ex.args[0]}
+        return JsonResponse(response_data, status=status.HTTP_409_CONFLICT)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_graph_customer(request):
+    try:
+        graph_processing = GraphCustomerProcessing()
+        return graph_processing.create_graph_customer(request)
     except Exception as ex:
         response_data = {'error': 'Непредвиденная ошибка при создании графика: ' + ex.args[0]}
         return JsonResponse(response_data, status=status.HTTP_409_CONFLICT)
