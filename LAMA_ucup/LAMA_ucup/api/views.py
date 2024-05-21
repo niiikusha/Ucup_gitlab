@@ -100,9 +100,62 @@ class KuGraphCustomerListView(generics.ListCreateAPIView):
 
 class KuCustomerListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
-    queryset = KuCustomer.objects.all()
     serializer_class = KuCustomerSerializer
     pagination_class = BasePagination
+
+    def get_queryset(self):
+        queryset = KuCustomer.objects.all().order_by('-ku_id')
+        ku_ids = self.request.query_params.getlist('ku_id', [])
+        entity_ids = self.request.query_params.getlist('entity_id', [])
+        customer_ids = self.request.query_params.getlist('customer_id', [])
+        period =self.request.query_params.get('period', None)
+        statuses = self.request.query_params.getlist('status', [])
+        graph_exists = self.request.query_params.getlist('graph_exists', [])
+        date_start_s =self.request.query_params.get('date_start_s', None)
+        date_start_e =self.request.query_params.get('date_start_e', None)
+        date_end_s =self.request.query_params.get('date_end_s', None)
+        date_end_e =self.request.query_params.get('date_end_e', None)
+
+        if ku_ids:
+            queryset = queryset.filter(ku_id__in=ku_ids)
+
+        if entity_ids:
+            queryset = queryset.filter(entity_id__in=entity_ids)
+
+        if customer_ids:
+            queryset = queryset.filter(customer_id__in=customer_ids)
+
+        if period is not None:
+            queryset = queryset.filter(period=period)
+
+        if statuses:
+            queryset = queryset.filter(status__in=statuses)
+
+        if graph_exists:
+            queryset = queryset.filter(graph_exists__in=graph_exists)
+
+        if date_start_s and date_start_e:
+            queryset = queryset.filter(date_start__range=[date_start_s, date_start_e])
+        
+        if date_end_s and date_end_e:
+            queryset = queryset.filter(date_end__range=[date_end_s, date_end_e])
+
+        # Добавляем сортировку
+        sort_by = self.request.query_params.get('sort_by')
+        if sort_by:
+            order_by = sort_by
+            # Если sortOrder не указан, считаем, что сортировка по возрастанию (ASC)
+            sort_order = self.request.query_params.get('sort_order', 'asc')
+            if sort_order.lower() == 'desc':
+                order_by = F(sort_by).desc()
+            queryset = queryset.order_by(order_by)
+
+        return queryset
+
+class KuCustomerDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
+    queryset = KuCustomer.objects.all()
+    serializer_class = KuCustomerSerializer
 #поставщики
 class BonusConditionView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]

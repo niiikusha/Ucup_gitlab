@@ -61,6 +61,7 @@ urlpatterns = [
     path('ku_create/', create_ku, name='ku_create'),
     
     path('ku_customer_create/', create_ku_customer, name='ku_create_customer'),
+    path('ku_customer_detail/<str:pk>/', KuCustomerDetailView.as_view()),
 
     path('name_contact_create/', name_contact_create, name='name_contact_create'),
 
