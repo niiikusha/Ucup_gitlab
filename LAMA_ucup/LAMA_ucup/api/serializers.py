@@ -25,9 +25,26 @@ class PriceListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class IncludedServiceSerializer(serializers.ModelSerializer):
+    service_code = serializers.SerializerMethodField()
+    article_code = serializers.SerializerMethodField()
+    service_name = serializers.SerializerMethodField()
+    article_name = serializers.SerializerMethodField()
+
     class Meta:
         model = IncludedService
-        fields = '__all__'
+        fields = ['id', 'ku', 'service', 'article','service_code', 'article_code', 'service_name', 'article_name', 'ratio']
+
+    def get_service_code(self, obj):
+        return obj.service.service_code if obj.service else None
+
+    def get_article_code(self, obj):
+        return obj.article.article_code if obj.article else None
+    
+    def get_service_name(self, obj):
+        return obj.service.service_name if obj.service else None
+
+    def get_article_name(self, obj):
+        return obj.article.article_name if obj.article else None
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,9 +57,21 @@ class KuGraphCustomerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class KuCustomerSerializer(serializers.ModelSerializer):
+    entity_name = serializers.SerializerMethodField()
+    customer_name = serializers.SerializerMethodField()
+
     class Meta:
         model = KuCustomer
-        fields = '__all__'
+        fields = ['ku_id', 'customer', 'customer_name', 'entity', 'entity_name', 'period', 'date_start', 
+                  'date_end', 'status', 'date_actual', 'graph_exists', 'description', 
+                  'contract', 'docu_account', 'docu_number', 'docu_date', 
+                  'docu_subject', 'pay_sum', 'pay_method', 'subsidiaries']
+
+    def get_entity_name(self, obj):
+        return obj.entity.name if obj.entity else None
+
+    def get_customer_name(self, obj):
+        return obj.customer.name if obj.customer else None
 #поставщики
 class ClassifierTestSerializer(serializers.ModelSerializer):
     class Meta:
@@ -55,14 +84,36 @@ class ManagerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ManagerKuSerializer(serializers.ModelSerializer):
+    # class Meta:
+    #     model = ManagerKu
+    #     fields = '__all__'
+    group = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+
     class Meta:
         model = ManagerKu
-        fields = '__all__'
+        fields = ['id','ku', 'manager', 'group', 'description', ]
+
+    def get_group(self, obj):
+        return obj.manager.group if obj.manager else None
+
+    def get_description(self, obj):
+        return obj.manager.description if obj.manager else None
 
 class ManagerKuCustomerSerializer(serializers.ModelSerializer):
+    group = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+
     class Meta:
         model = ManagerKuCustomer
-        fields = '__all__'
+        fields = ['id', 'ku', 'manager', 'group', 'description', ]
+
+    def get_group(self, obj):
+        return obj.manager.group if obj.manager else None
+
+    def get_description(self, obj):
+        return obj.manager.description if obj.manager else None
+    
 
 class OfficialSerializer(serializers.ModelSerializer):
     class Meta:

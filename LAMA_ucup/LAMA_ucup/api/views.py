@@ -68,9 +68,13 @@ class IncludedServiceListView(generics.ListCreateAPIView):
         ku_id = self.request.query_params.get('ku_id', None)
 
         if ku_id:
-            queryset = queryset.filter(ku_id=ku_id)
+            queryset = queryset.filter(ku=ku_id)
 
         return queryset
+class IncludedServiceDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
+    queryset = IncludedService.objects.all()
+    serializer_class = IncludedServiceSerializer
 
 class CustomerListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -89,7 +93,7 @@ class CustomerListView(generics.ListCreateAPIView):
         # Проверяем, предоставлен ли entityid в параметрах запроса
         if entity_id:
             # Фильтруем поставщиков на основе предоставленного entityid
-            queryset = queryset.filter(entity_id=entity_id)
+            queryset = queryset.filter(entity=entity_id)
     
         return queryset
 
@@ -121,10 +125,10 @@ class KuCustomerListView(generics.ListCreateAPIView):
             queryset = queryset.filter(ku_id__in=ku_ids)
 
         if entity_ids:
-            queryset = queryset.filter(entity_id__in=entity_ids)
+            queryset = queryset.filter(entity__in=entity_ids)
 
         if customer_ids:
-            queryset = queryset.filter(customer_id__in=customer_ids)
+            queryset = queryset.filter(customer__in=customer_ids)
 
         if period is not None:
             queryset = queryset.filter(period=period)
@@ -275,9 +279,14 @@ class ManagerKuListView(generics.ListCreateAPIView):
         ku_id = self.request.query_params.get('ku_id', None)
 
         if ku_id:
-            queryset = queryset.filter(ku_id=ku_id)
+            queryset = queryset.filter(ku=ku_id)
 
         return queryset.order_by('id')
+    
+class ManagerKuDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
+    queryset = ManagerKu.objects.all()
+    serializer_class = ManagerKuSerializer
 
 class ManagerKuCustomerListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -289,9 +298,14 @@ class ManagerKuCustomerListView(generics.ListCreateAPIView):
         ku_id = self.request.query_params.get('ku_id', None)
 
         if ku_id:
-            queryset = queryset.filter(ku_id=ku_id)
+            queryset = queryset.filter(ku=ku_id)
 
         return queryset.order_by('id')
+    
+class ManagerKuCustomerDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
+    queryset = ManagerKuCustomer.objects.all()
+    serializer_class = ManagerKuCustomerSerializer
 
 class OfficialListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]

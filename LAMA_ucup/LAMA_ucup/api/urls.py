@@ -44,6 +44,8 @@ urlpatterns = [
     path('manager_list/', ManagerListView.as_view()),
     path('manager_ku/', ManagerKuListView.as_view()),
     path('manager_ku_customer/', ManagerKuCustomerListView.as_view()),
+    path('manager_ku_detail/<str:pk>/', ManagerKuDetailView.as_view()),
+    path('manager_ku_customer_detail/<str:pk>/', ManagerKuCustomerDetailView.as_view()),
 
     path('official_create/', OfficialListView.as_view()),
     path('official_customer_create/', OfficialCustomerListView.as_view()),
@@ -104,6 +106,7 @@ urlpatterns = [
     path('place_service_list/', PlaceServiceListView.as_view()), #места оказания услуг
     path('price_list/', PriceListListView.as_view()), #прайс лист на оказываемые услуги
     path('included_service_list/', IncludedServiceListView.as_view()), #прайс лист на оказываемые услуги
+    path('included_service_detail/<int:pk>/', IncludedServiceDetailView.as_view()),
     path('customer_list/', CustomerListView.as_view()), #клиенты
     path('graph_customer_list/', KuGraphCustomerListView.as_view()), #график клиентов
     path('ku_customer_list/', KuCustomerListView.as_view()), #график клиентов
