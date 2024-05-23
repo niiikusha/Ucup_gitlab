@@ -110,5 +110,6 @@ urlpatterns = [
     path('customer_list/', CustomerListView.as_view()), #клиенты
     path('graph_customer_list/', KuGraphCustomerListView.as_view()), #график клиентов
     path('ku_customer_list/', KuCustomerListView.as_view()), #график клиентов
+    path('graph_create_customer/', create_graph_customer, name='create-graph-customer'),
 
 ]

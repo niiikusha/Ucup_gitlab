@@ -49,7 +49,6 @@ class GraphCustomerProcessing:
             graph_customer = KuGraphCustomer.objects.create(
                 ku_id=ku_id,
                 period=period,
-                date_start=date_start,
                 customer_id=customer_id,
                 entity_id=entity_id,
                 date_end_initial=date_end_initial,
