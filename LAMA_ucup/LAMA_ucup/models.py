@@ -47,7 +47,7 @@ class KuGraphCustomer(models.Model):
     period = models.CharField('Period', max_length=10, blank=True, null=True)  # Field name made lowercase.
     date_start = models.DateField('Date_start', blank=True, null=True)  # Field name made lowercase.
     date_end = models.DateField('Date_end', blank=True, null=True)  # Field name made lowercase.
-    date_calc = models.DateTimeField('Date_calc', blank=True, null=True)  # Field name made lowercase.
+    date_calc = models.DateTimeField('Дата расчета', blank=True, null=True)  # Field name made lowercase.
     date_accrual = models.DateField('Дата начисления', blank=True, null=True)  # Field name made lowercase.
     status = models.CharField('Status', max_length=20)  # Field name made lowercase.
     sum_calc = models.FloatField('Sum_calc', blank=True, null=True)  # Field name made lowercase.

@@ -8,44 +8,37 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from LAMA_ucup.venddocProcessing import VenddocProcessing
 from django.db import transaction
+import datetime
 
 class GraphProcessing:
 
     @staticmethod
     @transaction.atomic
-    def create_date_graph(request):
+    def create_date_graph(period, date_start, date_end_initial, date_actual):
         """
         Возвращает массив, состоящий из дат графика расчета
         """
-        input_data = JSONParser().parse(request)
-        graph_exists = input_data.get('graph_exists')
-
-        if graph_exists == True:
-            return Response({'error': 'Графики уже существуют для этого ku_id'}, status=status.HTTP_400_BAD_REQUEST)
         
-        period = input_data.get('period')
-        date_start = input_data.get('date_start')
-        date_end_initial = input_data.get('date_end')
+        if date_actual:
+            date_end_initial = date_actual
 
-        if input_data.get('date_actual'):
-            date_end_initial = input_data.get('date_actual')
-
-        year, month, day = map(int, date_start.split('-'))
+        year = date_start.year
+        month = date_start.month
+        day = date_start.day
 
         graph_data_list = []
 
         sum_bonus = 0
         sum_calc = 0
         date_accrual = 15
-        date_end = f"{year}-{month:02d}-{day:02d}"
+        date_end = datetime.date(year, month, day)
 
         if period == 'Месяц':
             
             while date_end < date_end_initial:
                 
                 last_day = calendar.monthrange(year, month)[1] #количество дней месяца
-
-                date_end = f"{year}-{month:02d}-{last_day:02d}"
+                date_end = datetime.date(year, month, last_day)
 
                 if date_end > date_end_initial: #проверка последнего графика 
                     date_end = date_end_initial
@@ -54,9 +47,9 @@ class GraphProcessing:
                 next_month_year = year + (1 if next_month == 1 else 0) #проверка на переполнение месяцев
 
                 graph_data_list.append({
-                    'date_start': f"{year}-{month:02d}-{day:02d}",
+                    'date_start':  datetime.date(year, month, day),
                     'date_end': date_end,
-                    'date_accrual': f"{next_month_year}-{next_month:02d}-{date_accrual}",
+                    'date_accrual': datetime.date(next_month_year, next_month, date_accrual),
                 })
 
                 month = next_month
@@ -75,7 +68,8 @@ class GraphProcessing:
                 if date_end > date_end_initial: 
                     date_end = date_end_initial
 
-                    month_in_date_end = int(date_end_initial.split("-")[1])
+                    # month_in_date_end = int(date_end_initial.split("-")[1])
+                    month_in_date_end = date_end_initial.month
                     month_calc = month_in_date_end % 12 + 1
                     year_calc = year + (1 if month_calc == 1 else 0)
                 

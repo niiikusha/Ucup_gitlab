@@ -775,8 +775,8 @@ def create_ku_customer(request):
 
         data = JSONParser().parse(request)
 
-        customer_id = data.get('customer_id')
-        entity_id = data.get('entity_id')
+        customer = data.get('customer')
+        entity = data.get('entity')
         period = data.get('period')
         date_start = data.get('date_start')
         date_end = data.get('date_end', None)
@@ -796,7 +796,7 @@ def create_ku_customer(request):
 
         try:
             ku_processing = KuCustomerProcessing()
-            return ku_processing.create_ku_customer(customer_id, entity_id, period, date_start, status_ku, date_end, date_actual, graph_exists,
+            return ku_processing.create_ku_customer(customer, entity, period, date_start, status_ku, date_end, date_actual, graph_exists,
                                            description, contract, docu_account, docu_number, docu_date, docu_subject, pay_method, pay_sum)
         except Exception as ex:
             response_data['status'] = 'false'

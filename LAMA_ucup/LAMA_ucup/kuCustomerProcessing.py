@@ -9,7 +9,7 @@ class KuCustomerProcessing:
     _count = 0
 
     @staticmethod
-    def create_ku_customer(customer_id, entity_id, period, date_start, status_ku, date_end=None, date_actual=None, graph_exists=None,
+    def create_ku_customer(customer, entity, period, date_start, status_ku, date_end=None, date_actual=None, graph_exists=None,
               description=None, contract=None, docu_account=None, docu_number=None,
               docu_date=None, docu_subject=None, pay_method=None, pay_sum=None):
         
@@ -32,13 +32,13 @@ class KuCustomerProcessing:
         if date_end and date_end < date_start:
             raise ValidationError("Дата окончания не должна быть раньше даты начала")
         
-        customer = Customer.objects.get(customer_id=customer_id)
-        entity = Entity.objects.get(entity_id=entity_id)
+        customer = Customer.objects.get(customer_id=customer)
+        entity = Entity.objects.get(entity_id=entity)
 
         ku = KuCustomer.objects.create(
             ku_id=ku_id,
-            customer_id=customer,
-            entity_id=entity,
+            customer=customer,
+            entity=entity,
             period=period,
             date_start=date_start,
             date_end=date_end,
