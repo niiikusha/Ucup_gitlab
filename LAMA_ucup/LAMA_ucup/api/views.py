@@ -935,11 +935,15 @@ class GraphListView(generics.ListCreateAPIView, generics.DestroyAPIView):
 
         return queryset
 
-class GraphDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление
+class GraphDetailView(generics.RetrieveUpdateDestroyAPIView): #обновление
     permission_classes = [AllowAny]
     queryset = KuGraph.objects.all()
     serializer_class = KuGraphSerializer
 
+class GraphCustomerDetailView(generics.RetrieveUpdateDestroyAPIView): #обновление
+    permission_classes = [AllowAny]
+    queryset = KuGraphCustomer.objects.all()
+    serializer_class = KuGraphCustomerSerializer
 
 class GraphWordslView(generics.RetrieveAPIView): #преобразование расчета в слова
     permission_classes = [AllowAny]

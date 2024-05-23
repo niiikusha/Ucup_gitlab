@@ -23,6 +23,9 @@ class GraphCustomerProcessing:
         graph_data_list = GraphProcessing.create_date_graph(request)
         
         ku_id = input_data.get('ku_id')
+        ku_instance = KuCustomer.objects.get(ku_id=ku_id)
+
+
         period = input_data.get('period')
         date_start = input_data.get('date_start')
         customer_id = input_data.get('customer')
