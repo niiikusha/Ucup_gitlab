@@ -136,9 +136,67 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ExcludedVenddocSerializer(serializers.ModelSerializer):
+    invoice_id = serializers.SerializerMethodField()
+    invoice_name = serializers.SerializerMethodField()
+    invoice_number = serializers.SerializerMethodField()
+    invoice_date = serializers.SerializerMethodField()
+    product_amount = serializers.SerializerMethodField()
+
     class Meta:
         model = ExcludedVenddoc
-        fields = '__all__'
+        fields = ['id', 'docid', 'ku_id', 'invoice_name', 'invoice_id', 'invoice_number', 'invoice_date', 'product_amount']
+
+    def get_invoice_name(self, obj):
+        try:
+            return obj.docid.invoice_name if obj.docid else None
+        except Venddoc.DoesNotExist:
+            return None
+    
+    def get_invoice_id (self, obj):
+        try:
+            return obj.docid.invoice_id if obj.docid else None
+        except Venddoc.DoesNotExist:
+            return None
+        
+    def get_invoice_number(self, obj):
+        try:
+            return obj.docid.invoice_number if obj.docid else None
+        except Venddoc.DoesNotExist:
+            return None
+        
+    def get_invoice_date(self, obj):
+        try:
+            return obj.docid.invoice_date if obj.docid else None
+        except Venddoc.DoesNotExist:
+            return None
+        
+    def get_product_amount(self, obj):
+        try:
+            return obj.docid.product_amount if obj.docid else None
+        except Venddoc.DoesNotExist:
+            return None
+        
+class IncludedVendorSerializer(serializers.ModelSerializer):
+    entity_name = serializers.SerializerMethodField()
+    vendor_name = serializers.SerializerMethodField()
+    class Meta:
+        model = IncludedVendor
+        fields = ['id', 'vendor', 'retention', 'status', 'entity', 'type_partner', 'code_partner', 'entity_name', 'vendor_name']
+
+    def get_entity_name(self, obj):
+        try:
+            return obj.entity.name if obj.entity else None
+        except Entity.DoesNotExist:
+            return None
+        
+    def get_vendor_name(self, obj):
+        try:
+            return obj.vendor.name if obj.vendor else None
+        except Vendor.DoesNotExist:
+            return None
+
+
+        
 
 class IncludedProductSerializer(serializers.ModelSerializer):
     class Meta:
