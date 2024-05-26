@@ -102,12 +102,21 @@ urlpatterns = [
     #клиенты
 
     path('service_list/', ServiceListView.as_view()), #справочник оказываемых  услуг
+    path('service_detail/<int:pk>/', ServiceDetailView.as_view()),
+
     path('article_list/', ArticleListView.as_view()), #справочник услуг
+    path('article_detail/<int:pk>/', ArticleDetailView.as_view()),
+
     path('place_service_list/', PlaceServiceListView.as_view()), #места оказания услуг
+    path('place_service_detail/<int:pk>/', PlaceDetailView.as_view()),
+
     path('price_list/', PriceListListView.as_view()), #прайс лист на оказываемые услуги
+    path('price_list_detail/<int:pk>/', PriceListDetailView.as_view()),
+
     path('included_service_list/', IncludedServiceListView.as_view()), #прайс лист на оказываемые услуги
     path('included_service_detail/<int:pk>/', IncludedServiceDetailView.as_view()),
     path('customer_list/', CustomerListView.as_view()), #клиенты
+    path('customer_detail/<str:pk>/', CustomerDetailView.as_view()),
     path('graph_customer_list/', KuGraphCustomerListView.as_view()), #график клиентов
     path('ku_customer_list/', KuCustomerListView.as_view()), #график клиентов
     path('graph_create_customer/', create_graph_customer, name='create-graph-customer'),

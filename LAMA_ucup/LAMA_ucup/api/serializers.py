@@ -47,14 +47,34 @@ class IncludedServiceSerializer(serializers.ModelSerializer):
         return obj.article.article_name if obj.article else None
 
 class CustomerSerializer(serializers.ModelSerializer):
+    entity_name = serializers.SerializerMethodField()
     class Meta:
         model = Customer
-        fields = '__all__'
+        fields =  ["customer_id","name","urastic_name","inn_kpp","director_name","urastic_adress","account","bank_name","bank_bik","corr_account","dir_party","entity","entity_name"]
+    def get_entity_name(self, obj):
+        return obj.entity.name if obj.entity else None
 
 class KuGraphCustomerSerializer(serializers.ModelSerializer):
+    # class Meta:
+    #     model = KuGraphCustomer
+    #     fields = '__all__'
+    customer_name = serializers.SerializerMethodField()
+    entity_id = serializers.SerializerMethodField()
+    entity_name = serializers.SerializerMethodField()
     class Meta:
         model = KuGraphCustomer
-        fields = '__all__'
+        fields = [ 'graph_id', 'ku', 'customer', 'customer_name', 'entity_id', 'entity_name', 'period', 'date_start', 
+                  'date_end', 'date_calc', 'date_accrual','status', 'sum_calc', 'sum_bonus', 'sum_approved']
+    
+
+    def get_customer_name(self, obj):
+        return obj.customer.name if obj.customer else None
+        
+    def get_entity_name(self, obj):
+            return obj.customer.entity.name if obj.customer else None
+        
+    def get_entity_id(self, obj):
+            return obj.customer.entity.entity_id if obj.customer else None
 
 class KuCustomerSerializer(serializers.ModelSerializer):
     entity_name = serializers.SerializerMethodField()
@@ -136,10 +156,27 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ExcludedVenddocSerializer(serializers.ModelSerializer):
+    invoice_id = serializers.SerializerMethodField()
+    invoice_name = serializers.SerializerMethodField()
+    invoice_number = serializers.SerializerMethodField()
+    invoice_date = serializers.SerializerMethodField()
+    product_amount = serializers.SerializerMethodField()
     class Meta:
         model = ExcludedVenddoc
-        fields = '__all__'
+        fields = ['id','ku_id','docid','invoice_id','invoice_name','invoice_number','invoice_date','product_amount']
 
+
+    def get_invoice_id(self, obj):
+            return obj.docid.invoice_id if obj.docid else None
+    def get_invoice_name(self, obj):
+            return obj.docid.invoice_name if obj.docid else None
+    def get_invoice_number(self, obj):
+            return obj.docid.invoice_number if obj.docid else None
+    def get_invoice_date(self, obj):
+            return obj.docid.invoice_date if obj.docid else None
+    def get_product_amount(self, obj):
+            return obj.docid.product_amount if obj.docid else None
+        
 class IncludedProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = IncludedProduct
