@@ -47,14 +47,34 @@ class IncludedServiceSerializer(serializers.ModelSerializer):
         return obj.article.article_name if obj.article else None
 
 class CustomerSerializer(serializers.ModelSerializer):
+    entity_name = serializers.SerializerMethodField()
     class Meta:
         model = Customer
-        fields = '__all__'
+        fields =  ["customer_id","name","urastic_name","inn_kpp","director_name","urastic_adress","account","bank_name","bank_bik","corr_account","dir_party","entity","entity_name"]
+    def get_entity_name(self, obj):
+        return obj.entity.name if obj.entity else None
 
 class KuGraphCustomerSerializer(serializers.ModelSerializer):
+    # class Meta:
+    #     model = KuGraphCustomer
+    #     fields = '__all__'
+    customer_name = serializers.SerializerMethodField()
+    entity_id = serializers.SerializerMethodField()
+    entity_name = serializers.SerializerMethodField()
     class Meta:
         model = KuGraphCustomer
-        fields = '__all__'
+        fields = [ 'graph_id', 'ku', 'customer', 'customer_name', 'entity_id', 'entity_name', 'period', 'date_start', 
+                  'date_end', 'date_calc', 'date_accrual','status', 'sum_calc', 'sum_bonus', 'sum_approved']
+    
+
+    def get_customer_name(self, obj):
+        return obj.customer.name if obj.customer else None
+        
+    def get_entity_name(self, obj):
+            return obj.customer.entity.name if obj.customer else None
+        
+    def get_entity_id(self, obj):
+            return obj.customer.entity.entity_id if obj.customer else None
 
 class KuCustomerSerializer(serializers.ModelSerializer):
     entity_name = serializers.SerializerMethodField()
@@ -194,10 +214,7 @@ class IncludedVendorSerializer(serializers.ModelSerializer):
             return obj.vendor.name if obj.vendor else None
         except Vendor.DoesNotExist:
             return None
-
-
         
-
 class IncludedProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = IncludedProduct

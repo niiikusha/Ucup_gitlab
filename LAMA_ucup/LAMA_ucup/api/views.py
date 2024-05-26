@@ -39,11 +39,21 @@ class ServiceListView(generics.ListCreateAPIView):
     serializer_class = ServiceSerializer
     pagination_class = BasePagination
 
+class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
 class ArticleListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
     pagination_class = BasePagination
+
+class ArticleDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
 
 class PlaceServiceListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -51,12 +61,29 @@ class PlaceServiceListView(generics.ListCreateAPIView):
     serializer_class = PlaceServiceSerializer
     pagination_class = BasePagination
 
+class PlaceDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
+    queryset = PlaceService.objects.all()
+    serializer_class = PlaceServiceSerializer
+
 class PriceListListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
-    queryset = PriceList.objects.all()
     serializer_class = PriceListSerializer
     pagination_class = BasePagination
 
+    def get_queryset(self):
+        queryset = PriceList.objects.all()
+        article_code = self.request.query_params.get('article_code', None)
+
+        if article_code:
+            queryset = queryset.filter(article_code=article_code)
+
+        return queryset.order_by('-date_action')
+
+class PriceListDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
+    queryset = PriceList.objects.all()
+    serializer_class = PriceListSerializer
 
 class IncludedServiceListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -83,25 +110,104 @@ class CustomerListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Customer.objects.all().order_by('customer_id')
-        entity_id = self.request.query_params.get('entity_id', None)
+        entity_ids = self.request.query_params.getlist('entity_id', [])
         customer_id = self.request.query_params.get('customer_id', None)
         
-        # Проверяем, предоставлен ли entityid в параметрах запроса
         if customer_id:
-            # Фильтруем поставщиков на основе предоставленного entityid
             queryset = queryset.filter(customer_id=customer_id)
-        # Проверяем, предоставлен ли entityid в параметрах запроса
-        if entity_id:
-            # Фильтруем поставщиков на основе предоставленного entityid
-            queryset = queryset.filter(entity=entity_id)
+        if entity_ids:
+            queryset = queryset.filter(entity__in=entity_ids)
     
+        search_query = self.request.query_params.get('search', '') 
+        try:
+            queryset = queryset.filter( 
+                Q(customer_id__icontains=search_query) | 
+                Q(name__icontains=search_query) | 
+                Q(urastic_name__icontains=search_query) | 
+                Q(director_name__icontains=search_query) |
+                Q(inn_kpp__icontains=search_query) |
+                Q(urastic_adress__icontains=search_query) |
+                Q(entity__exact=search_query) 
+            )
+        except Exception as e:
+            print(f"Error in queryset filtering: {e}")
+
+        sort_by = self.request.query_params.get('sort_by')
+        if sort_by:
+            order_by = sort_by
+            sort_order = self.request.query_params.get('sort_order', 'asc')
+            if sort_order.lower() == 'desc':
+                order_by = F(sort_by).desc()
+            queryset = queryset.order_by(order_by)
+
         return queryset
+    
+class CustomerDetailView(generics.RetrieveUpdateDestroyAPIView): #обновление
+    permission_classes = [AllowAny]
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
 
 class KuGraphCustomerListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
-    queryset = KuGraphCustomer.objects.all()
     serializer_class = KuGraphCustomerSerializer
     pagination_class = BasePagination
+
+    def get_queryset(self):
+        queryset = KuGraphCustomer.objects.all().order_by('-graph_id')
+        queryset = queryset.annotate(entity_id=F('customer_id__entity_id'))
+
+        ku_ids = self.request.query_params.getlist('ku_id', [])
+        entity_ids = self.request.query_params.getlist('entity_id', [])
+        customer_ids = self.request.query_params.getlist('customer_id', [])
+        periods = self.request.query_params.getlist('period', [])
+        statuses = self.request.query_params.getlist('status', [])
+        date_start_s = self.request.query_params.get('date_start_s', None)
+        date_start_e = self.request.query_params.get('date_start_e', None)
+        date_end_s = self.request.query_params.get('date_end_s', None)
+        date_end_e = self.request.query_params.get('date_end_e', None)
+        date_calc_s= self.request.query_params.get('date_calc_s', None)
+        date_calc_e= self.request.query_params.get('date_calc_e', None)
+        date_accrual_s= self.request.query_params.get('date_accrual_s', None)
+        date_accrual_e= self.request.query_params.get('date_accrual_e', None)
+        
+        if ku_ids:
+            queryset = queryset.filter(ku__in=ku_ids)
+
+        if entity_ids:
+            queryset = queryset.filter(customer__entity__in=entity_ids)
+
+        if customer_ids:
+            queryset = queryset.filter(customer__in=customer_ids)
+
+        if periods:
+            queryset = queryset.filter(period__in=periods)
+
+        if statuses:
+            queryset = queryset.filter(status__in=statuses)
+
+        if date_start_s and date_start_e:
+            queryset = queryset.filter(date_start__range=[date_start_s, date_start_e])
+        
+        if date_end_s and date_end_e:
+            queryset = queryset.filter(date_end__range=[date_end_s, date_end_e])
+
+        if date_calc_s and date_calc_e:
+            queryset = queryset.filter(date_calc__range=[date_calc_s, date_calc_e])
+
+        if date_accrual_s and date_accrual_e:
+            queryset = queryset.filter(date_accrual__range=[date_accrual_s, date_accrual_e])
+        
+        # Добавляем сортировку
+        sort_by = self.request.query_params.get('sort_by')
+        if sort_by:
+            order_by = sort_by
+            # Если sortOrder не указан, считаем, что сортировка по возрастанию (ASC)
+            sort_order = self.request.query_params.get('sort_order', 'asc')
+            if sort_order.lower() == 'desc':
+                order_by = F(sort_by).desc()
+            queryset = queryset.order_by(order_by)
+
+        return queryset
 
 class KuCustomerListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -156,6 +262,8 @@ class KuCustomerListView(generics.ListCreateAPIView):
             queryset = queryset.order_by(order_by)
 
         return queryset
+    
+
 
 class KuCustomerDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]

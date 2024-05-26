@@ -424,7 +424,7 @@ class Venddoclines(models.Model):
 
 
 class Manager(models.Model):
-    manager = models.BigAutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
     group = models.CharField(blank=True, null=True)
     description = models.CharField(blank=True, null=True)
 
