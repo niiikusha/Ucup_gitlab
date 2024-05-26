@@ -482,6 +482,16 @@ class IncludedVendor(models.Model):
     class Meta:
         db_table = 'included_vendor'
 
+class IncludedVendorCustomer(models.Model):
+    vendor = models.ForeignKey(Vendor, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    retention = models.CharField(blank=True, null=True)
+    status = models.CharField(blank=True, null=True)
+    entity = models.ForeignKey(Entity, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    type_partner = models.CharField(blank=True, null=True)
+    code_partner = models.CharField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'included_vendor_customer'
 
 class AuthGroup(models.Model):
     name = models.CharField(unique=True, max_length=150)

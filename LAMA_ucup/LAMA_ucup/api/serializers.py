@@ -215,6 +215,25 @@ class IncludedVendorSerializer(serializers.ModelSerializer):
         except Vendor.DoesNotExist:
             return None
         
+class IncludedVendorCustomerSerializer(serializers.ModelSerializer):
+    entity_name = serializers.SerializerMethodField()
+    vendor_name = serializers.SerializerMethodField()
+    class Meta:
+        model = IncludedVendorCustomer
+        fields = ['id', 'vendor', 'retention', 'status', 'entity', 'type_partner', 'code_partner', 'entity_name', 'vendor_name']
+
+    def get_entity_name(self, obj):
+        try:
+            return obj.entity.name if obj.entity else None
+        except Entity.DoesNotExist:
+            return None
+        
+    def get_vendor_name(self, obj):
+        try:
+            return obj.vendor.name if obj.vendor else None
+        except Vendor.DoesNotExist:
+            return None
+        
 class IncludedProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = IncludedProduct

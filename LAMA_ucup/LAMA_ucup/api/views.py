@@ -300,6 +300,11 @@ class IncludedVendorView(generics.ListCreateAPIView): #поставщики и �
     queryset = IncludedVendor.objects.all()
     serializer_class = IncludedVendorSerializer
 
+class IncludedVendorCustomerView(generics.ListCreateAPIView): #поставщики и договоры
+    permission_classes = [AllowAny]
+    queryset = IncludedVendorCustomer.objects.all()
+    serializer_class = IncludedVendorCustomerSerializer
+
 class ExcludedVenddocFullView(generics.ListAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
     serializer_class = VendDocSerializer
