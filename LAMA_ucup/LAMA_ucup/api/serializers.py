@@ -201,7 +201,7 @@ class IncludedVendorSerializer(serializers.ModelSerializer):
     vendor_name = serializers.SerializerMethodField()
     class Meta:
         model = IncludedVendor
-        fields = ['id', 'vendor', 'retention', 'status', 'entity', 'type_partner', 'code_partner', 'entity_name', 'vendor_name']
+        fields = ['id', 'vendor', 'retention', 'status', 'entity', 'type_partner', 'code_partner', 'entity_name', 'vendor_name', 'ku']
 
     def get_entity_name(self, obj):
         try:
@@ -220,7 +220,7 @@ class IncludedVendorCustomerSerializer(serializers.ModelSerializer):
     vendor_name = serializers.SerializerMethodField()
     class Meta:
         model = IncludedVendorCustomer
-        fields = ['id', 'vendor', 'retention', 'status', 'entity', 'type_partner', 'code_partner', 'entity_name', 'vendor_name']
+        fields = ['id', 'vendor', 'retention', 'status', 'entity', 'type_partner', 'code_partner', 'entity_name', 'vendor_name', 'ku']
 
     def get_entity_name(self, obj):
         try:

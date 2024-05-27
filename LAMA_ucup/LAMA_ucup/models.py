@@ -478,6 +478,7 @@ class IncludedVendor(models.Model):
     entity = models.ForeignKey(Entity, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
     type_partner = models.CharField(blank=True, null=True)
     code_partner = models.CharField(blank=True, null=True)
+    ku = models.ForeignKey(Ku,  models.DO_NOTHING, db_constraint=False, blank=True, null=True)
 
     class Meta:
         db_table = 'included_vendor'
@@ -489,6 +490,7 @@ class IncludedVendorCustomer(models.Model):
     entity = models.ForeignKey(Entity, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
     type_partner = models.CharField(blank=True, null=True)
     code_partner = models.CharField(blank=True, null=True)
+    ku = models.ForeignKey(Ku,  models.DO_NOTHING, db_constraint=False, blank=True, null=True)
 
     class Meta:
         db_table = 'included_vendor_customer'
