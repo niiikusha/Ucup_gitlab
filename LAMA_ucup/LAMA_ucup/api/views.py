@@ -77,6 +77,26 @@ class PriceListListView(generics.ListCreateAPIView):
 
         if article_code:
             queryset = queryset.filter(article_code=article_code)
+            search_query = self.request.query_params.get('search', '') 
+        try:
+            queryset = queryset.filter( 
+                Q(date_action__icontains=search_query) | 
+                Q(date_expiration=search_query) | 
+                Q(article_code__icontains=search_query) | 
+                Q(article_name__icontains=search_query) |
+                Q(price__icontains=search_query) |
+                Q(unit__icontains=search_query)
+            )
+        except Exception as e:
+            print(f"Error in queryset filtering: {e}")
+
+        sort_by = self.request.query_params.get('sort_by')
+        if sort_by:
+            order_by = sort_by
+            sort_order = self.request.query_params.get('sort_order', 'asc')
+            if sort_order.lower() == 'desc':
+                order_by = F(sort_by).desc()
+            queryset = queryset.order_by(order_by)
 
         return queryset.order_by('-date_action')
 
