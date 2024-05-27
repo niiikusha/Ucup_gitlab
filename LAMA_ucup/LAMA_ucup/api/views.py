@@ -508,7 +508,7 @@ class ExcludedProductListView(generics.ListAPIView):
 
         return queryset.order_by('graph_id')
     
-class IncludedInvoiceListView(generics.ListAPIView):
+class IncludedInvoiceListView(generics.ListAPIView):#общая сумма продуктов в накладных 
     permission_classes = [AllowAny]
     serializer_class = VendDocSerializer
     pagination_class = BasePagination
@@ -531,7 +531,7 @@ class IncludedInvoiceListView(generics.ListAPIView):
 
         # venddoclines__qty
         # queryset_venddoc = queryset_venddoc.annotate(total_qty=total_qty)
-
+        print('total_qty', total_qty)
         # Добавление total_qty к каждому объекту Venddoc в queryset
         for venddoc in queryset_venddoc:
             venddoc.total_qty = total_qty

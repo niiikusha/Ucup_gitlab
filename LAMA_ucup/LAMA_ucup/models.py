@@ -242,7 +242,6 @@ class IncludedProductList(models.Model):
     qty = models.IntegerField('Количество', blank=True, null=True)
     
     class Meta:
-
         db_table = 'included_product_list'
 
 
@@ -477,7 +476,6 @@ class IncludedVendor(models.Model):
     status = models.CharField(blank=True, null=True)
     entity = models.ForeignKey(Entity, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
     type_partner = models.CharField(blank=True, null=True)
-    code_partner = models.CharField(blank=True, null=True)
     ku = models.ForeignKey(Ku,  models.DO_NOTHING, db_constraint=False, blank=True, null=True)
 
     class Meta:
@@ -489,7 +487,6 @@ class IncludedVendorCustomer(models.Model):
     status = models.CharField(blank=True, null=True)
     entity = models.ForeignKey(Entity, models.DO_NOTHING, db_constraint=False, blank=True, null=True)
     type_partner = models.CharField(blank=True, null=True)
-    code_partner = models.CharField(blank=True, null=True)
     ku = models.ForeignKey(Ku,  models.DO_NOTHING, db_constraint=False, blank=True, null=True)
 
     class Meta:
