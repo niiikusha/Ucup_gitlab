@@ -498,6 +498,7 @@ class IncludedInvoiceListView(generics.ListAPIView):#общая сумма пр�
             qty_values = queryset.values_list('qty', flat=True)
             total_qty = sum(qty for qty in qty_values if qty is not None)
             
+            
         queryset_venddoc = Venddoc.objects.all().order_by('vendor_id')
 
         docid_list = queryset.values_list('invoice_id', flat=True)
