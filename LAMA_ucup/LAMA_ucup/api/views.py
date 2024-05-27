@@ -35,9 +35,29 @@ class BasePagination(PageNumberPagination):
 #клиенты
 class ServiceListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
-    queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     pagination_class = BasePagination
+
+    def get_queryset(self):
+        queryset = Service.objects.all()
+        search_query = self.request.query_params.get('search', '') 
+        try:
+            queryset = queryset.filter( 
+                Q(service_code__icontains=search_query) | 
+                Q(service_name__icontains=search_query) 
+            )
+        except Exception as e:
+            print(f"Error in queryset filtering: {e}")
+
+        sort_by = self.request.query_params.get('sort_by')
+        if sort_by:
+            order_by = sort_by
+            sort_order = self.request.query_params.get('sort_order', 'asc')
+            if sort_order.lower() == 'desc':
+                order_by = F(sort_by).desc()
+            queryset = queryset.order_by(order_by)
+
+        return queryset
 
 class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
@@ -46,9 +66,29 @@ class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView): #добавле�
 
 class ArticleListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
-    queryset = Article.objects.all()
     serializer_class = ArticleSerializer
     pagination_class = BasePagination
+    
+    def get_queryset(self):
+        queryset = Article.objects.all()
+        search_query = self.request.query_params.get('search', '') 
+        try:
+            queryset = queryset.filter( 
+                Q(article_code__icontains=search_query) | 
+                Q(article_name__icontains=search_query) 
+            )
+        except Exception as e:
+            print(f"Error in queryset filtering: {e}")
+
+        sort_by = self.request.query_params.get('sort_by')
+        if sort_by:
+            order_by = sort_by
+            sort_order = self.request.query_params.get('sort_order', 'asc')
+            if sort_order.lower() == 'desc':
+                order_by = F(sort_by).desc()
+            queryset = queryset.order_by(order_by)
+
+        return queryset
 
 class ArticleDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
@@ -57,9 +97,30 @@ class ArticleDetailView(generics.RetrieveUpdateDestroyAPIView): #добавле�
 
 class PlaceServiceListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
-    queryset = PlaceService.objects.all()
     serializer_class = PlaceServiceSerializer
     pagination_class = BasePagination
+
+    def get_queryset(self):
+        queryset = PlaceService.objects.all()
+        search_query = self.request.query_params.get('search', '') 
+        try:
+            queryset = queryset.filter( 
+                Q(shop_code__icontains=search_query) | 
+                Q(shop_name__icontains=search_query) |
+                Q(address__icontains=search_query)
+            )
+        except Exception as e:
+            print(f"Error in queryset filtering: {e}")
+
+        sort_by = self.request.query_params.get('sort_by')
+        if sort_by:
+            order_by = sort_by
+            sort_order = self.request.query_params.get('sort_order', 'asc')
+            if sort_order.lower() == 'desc':
+                order_by = F(sort_by).desc()
+            queryset = queryset.order_by(order_by)
+
+        return queryset
 
 class PlaceDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
@@ -77,6 +138,25 @@ class PriceListListView(generics.ListCreateAPIView):
 
         if article_code:
             queryset = queryset.filter(article_code=article_code)
+
+        search_query = self.request.query_params.get('search', '') 
+        try:
+            queryset = queryset.filter( 
+                Q(article_code__icontains=search_query) | 
+                Q(article_name__icontains=search_query) |
+                Q(price__icontains=search_query) |
+                Q(unit__icontains=search_query)
+            )
+        except Exception as e:
+            print(f"Error in queryset filtering: {e}")
+
+        sort_by = self.request.query_params.get('sort_by')
+        if sort_by:
+            order_by = sort_by
+            sort_order = self.request.query_params.get('sort_order', 'asc')
+            if sort_order.lower() == 'desc':
+                order_by = F(sort_by).desc()
+            queryset = queryset.order_by(order_by)
 
         return queryset.order_by('-date_action')
 
