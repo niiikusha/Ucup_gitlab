@@ -297,13 +297,38 @@ class OfficialCustomerView(generics.RetrieveUpdateDestroyAPIView): #добавл
 
 class IncludedVendorView(generics.ListCreateAPIView): #поставщики и договоры
     permission_classes = [AllowAny]
+    serializer_class = IncludedVendorSerializer
+    pagination_class = BasePagination
+
+    def get_queryset(self):
+        queryset = IncludedVendor.objects.all()
+        ku_id = self.request.query_params.get('ku_id', None)
+
+        if ku_id:
+            queryset = queryset.filter(ku=ku_id)
+
+class IncludedVendorDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
     queryset = IncludedVendor.objects.all()
     serializer_class = IncludedVendorSerializer
 
 class IncludedVendorCustomerView(generics.ListCreateAPIView): #поставщики и договоры
     permission_classes = [AllowAny]
+    serializer_class = IncludedVendorCustomerSerializer
+    pagination_class = BasePagination
+
+    def get_queryset(self):
+        queryset = IncludedVendorCustomer.objects.all()
+        ku_id = self.request.query_params.get('ku_id', None)
+
+        if ku_id:
+            queryset = queryset.filter(ku=ku_id)
+
+class IncludedVendorCustomeDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
     queryset = IncludedVendorCustomer.objects.all()
     serializer_class = IncludedVendorCustomerSerializer
+
 
 class ExcludedVenddocFullView(generics.ListAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]

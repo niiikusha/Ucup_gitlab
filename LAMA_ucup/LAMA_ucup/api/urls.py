@@ -98,7 +98,10 @@ urlpatterns = [
     path('brand_list/', BrandClassifierListView.as_view()),
 
     path('included_vendor_create/', IncludedVendorView.as_view()),
+    path('included_vendor_detail/<int:pk>/', IncludedVendorDetailView.as_view()),
     path('included_vendor_customer_create/', IncludedVendorCustomerView.as_view()),
+    path('included_vendor_customer_detail/<int:pk>/', IncludedVendorCustomeDetailView.as_view()),
+
 
     path('me/', me_view),
 
