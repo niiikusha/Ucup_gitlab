@@ -527,20 +527,15 @@ class IncludedInvoiceListView(generics.ListAPIView):#общая сумма пр�
             qty_values = queryset.values_list('qty', flat=True)
             total_qty = sum(qty for qty in qty_values if qty is not None)
             
-            
         queryset_venddoc = Venddoc.objects.all().order_by('vendor_id')
 
         docid_list = queryset.values_list('invoice_id', flat=True)
 
         queryset_venddoc = queryset_venddoc.filter(docid__in=docid_list)
 
-        # venddoclines__qty
-        # queryset_venddoc = queryset_venddoc.annotate(total_qty=total_qty)
-        print('total_qty', total_qty)
-        # Добавление total_qty к каждому объекту Venddoc в queryset
-        for venddoc in queryset_venddoc:
-            venddoc.total_qty = total_qty
-        return queryset_venddoc
+        
+        # return queryset_venddoc
+        return JsonResponse({'total_sum' :total_qty})
 
 class EntityListView(generics.ListAPIView):
     permission_classes = [AllowAny]

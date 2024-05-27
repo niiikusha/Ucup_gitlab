@@ -367,6 +367,7 @@ class Venddoc(models.Model):
     product_amount = models.FloatField('Products_amount', blank=True, null=True)  # Field name made lowercase.
     purchase_type = models.CharField('purch type', blank=True, null=True)
     fully_factured = models.CharField('fully factured', blank=True, null=True)
+    sum_product = models.FloatField('Сумма количества продуктов', blank=True, null=True)
 
     class Meta:
        

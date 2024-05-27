@@ -76,12 +76,14 @@ class VenddocProcessing:
             entity_merge_ids = entity_id
             vendors_dir_party = vendor_id
         print('entity_merge_ids', entity_merge_ids)
-
+        print('vendors_dir_party', vendors_dir_party)
+        print('start_date', start_date)
+        print('end_date', end_date)
         excluded_venddoc = ExcludedVenddoc.objects.filter(ku_id = graph_instance.ku_id)
 
-        venddoc_rows = Venddoc.objects.filter(
+        venddoc_rows = Venddoc.objects.filter( # vendor_id__in=vendors_dir_party,
             vendor_id=vendors_dir_party,
-            entity_id__in=entity_merge_ids,
+            entity_id=entity_merge_ids,
             invoice_date__gte=start_date,
             invoice_date__lte=end_date
         )
