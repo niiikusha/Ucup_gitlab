@@ -307,6 +307,8 @@ class IncludedVendorView(generics.ListCreateAPIView): #поставщики и �
         if ku_id:
             queryset = queryset.filter(ku=ku_id)
 
+        return queryset
+
 class IncludedVendorDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
     queryset = IncludedVendor.objects.all()
@@ -323,6 +325,8 @@ class IncludedVendorCustomerView(generics.ListCreateAPIView): #поставщи�
 
         if ku_id:
             queryset = queryset.filter(ku=ku_id)
+
+        return queryset
 
 class IncludedVendorCustomeDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
