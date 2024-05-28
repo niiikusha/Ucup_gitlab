@@ -581,7 +581,7 @@ class IncludedProductListView(generics.ListAPIView):
         if product_id:
             queryset = queryset.filter(product_id=product_id)
 
-        queryset = queryset.order_by('product_id').distinct('product_id')
+        queryset = queryset.order_by('product_id').distinct('product_id') #убираем повторяющиеся строки продуктов
 
         return queryset
 
