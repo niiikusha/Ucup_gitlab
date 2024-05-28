@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from ..models import *
-
+from django.db.models import Sum
 #клиенты
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -492,12 +492,40 @@ class VendorNameSerializer(serializers.ModelSerializer):
 class VendDocSerializer(serializers.ModelSerializer):
     entity_name = serializers.SerializerMethodField()
     vendor_name = serializers.SerializerMethodField()
+    total_qty = serializers.FloatField(required=False)  # Сделаем поле необязательным
+
+    def __init__(self, *args, **kwargs):
+        # Проверяем, добавлено ли total_qty в поля через аннотацию
+        if 'total_qty' in kwargs.get('context', {}).get('fields', []):
+            # Если да, делаем поле обязательным
+            self.fields['total_qty'].required = True
+
+        super().__init__(*args, **kwargs)
+  
 
     class Meta:
         model = Venddoc
         fields = ['invoice_id','vendor_id', 'vendor_name', 'entity_id', 'entity_name','docid', 'doctype', 'invoice_name', 'invoice_number',
-                  'invoice_date', 'purch_number', 'purch_date', 'invoice_status', 'product_amount']
+                  'invoice_date', 'purch_number', 'purch_date', 'invoice_status', 'product_amount', 'total_qty']
+    
+    
+    # def get_total_qty(self, obj):
+    #     return obj.total_qty if hasattr(obj, 'total_qty') else 0 
+    # def to_representation(self, instance):
         
+    #         data = super().to_representation(instance)
+    #         # data['total_qty'] = 10
+    #         # total_qty = data.get('total_qty')
+    #         # if total_qty is None:  # Проверяем, передано ли значение total_qty
+    #         #     data.pop('total_qty', None)  # Если не передано, удаляем total_qty из данных
+    #         return data
+    
+    # def get_total_qty(self, obj):
+    #     try:
+    #         total_qty = Venddoclines.objects.filter(docid=obj.docid).aggregate(total_qty=Sum('qty'))['total_qty']
+    #         return total_qty if total_qty is not None else 0
+    #     except Venddoclines.DoesNotExist:
+    #         return 0
         
     def get_entity_name(self, obj):
         try:

@@ -367,7 +367,7 @@ class Venddoc(models.Model):
     product_amount = models.FloatField('Products_amount', blank=True, null=True)  # Field name made lowercase.
     purchase_type = models.CharField('purch type', blank=True, null=True)
     fully_factured = models.CharField('fully factured', blank=True, null=True)
-    sum_product = models.FloatField('Сумма количества продуктов', blank=True, null=True)
+    sum_qty= models.FloatField('Сумма количества продуктов', blank=True, null=True)
 
     class Meta:
        
@@ -408,7 +408,7 @@ class ExcludedProductList(models.Model):
 
 class Venddoclines(models.Model):
     recid = models.BigAutoField('RecId', primary_key=True, blank=True, default=2567072)  # Field name made lowercase.
-    docid = models.ForeignKey(Venddoc, models.DO_NOTHING, db_column='docid', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
+    docid = models.ForeignKey(Venddoc, models.DO_NOTHING, db_constraint=False, blank=True, null=True)  # Field name made lowercase.
     product_id = models.ForeignKey(Product, models.DO_NOTHING, db_column='product_id', db_constraint=False,)  # Field name made lowercase.
     qty = models.FloatField('QTY', blank=True, null=True)  # Field name made lowercase.
     amount = models.FloatField('Amount', blank=True, null=True)  # Field name made lowercase.
