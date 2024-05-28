@@ -571,13 +571,19 @@ class IncludedProductListView(generics.ListAPIView):
     pagination_class = BasePagination
     
     def get_queryset(self):
-        queryset = IncludedProductList.objects.all().order_by('graph_id')
+        queryset = IncludedProductList.objects.all()
         graph_id = self.request.query_params.get('graph_id', None)
+        product_id = self.request.query_params.get('product_id', None)
 
         if graph_id:
             queryset = queryset.filter(graph_id=graph_id)
+        
+        if product_id:
+            queryset = queryset.filter(product_id=product_id)
 
-        return queryset.order_by('-graph_id')
+        queryset = queryset.order_by('product_id').distinct('product_id')
+
+        return queryset
 
 class ExcludedProductListView(generics.ListAPIView):
     permission_classes = [AllowAny]
