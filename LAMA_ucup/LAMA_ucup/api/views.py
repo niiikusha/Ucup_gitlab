@@ -802,7 +802,7 @@ class VendDocListView(generics.ListAPIView):
         queryset = Venddoc.objects.all().order_by('-invoice_date')
 
         entity_ids = self.request.query_params.getlist('entity_id', [])
-        vendor_ids = self.request.query_params.get('vendor_id', [])
+        vendor_ids = self.request.query_params.getlist('vendor_id', [])  
         start_date = self.request.query_params.get('start_date', None)
         end_date = self.request.query_params.get('end_date', None)
 
@@ -813,7 +813,7 @@ class VendDocListView(generics.ListAPIView):
             queryset = queryset.filter(entity_id__in=entity_ids)
 
         if vendor_ids:
-            queryset = queryset.filter(vendor_id_in=vendor_ids)
+            queryset = queryset.filter(vendor_id__in=vendor_ids)
     
         search_query = self.request.query_params.get('search', '') 
 
