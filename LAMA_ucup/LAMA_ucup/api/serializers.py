@@ -247,14 +247,16 @@ class ExcludedProductSerializer(serializers.ModelSerializer):
 class IncludedProductListSerializer(serializers.ModelSerializer):
     product_qty = serializers.SerializerMethodField()
     product_name = serializers.SerializerMethodField()
-    category_name = serializers.SerializerMethodField()
+    category_name_l4 = serializers.SerializerMethodField()
+    category_name_l3 = serializers.SerializerMethodField()
+    category_name_l2 = serializers.SerializerMethodField()
     producer_name = serializers.SerializerMethodField()
     brand_name = serializers.SerializerMethodField()
 
     class Meta:
         model = IncludedProductList
         fields = ['graph_id', 'product_id', 'amount', 'invoice_id', 'inc_prod_list', 'product_qty', 'qty',
-                   'product_name' ,'category_name', 'producer_name', 'rec_id', 'brand_name']
+                   'product_name' ,'category_name_l4','category_name_l3','category_name_l2', 'producer_name', 'rec_id', 'brand_name']
 
     def get_product_qty(self, obj):
         try:
@@ -268,9 +270,29 @@ class IncludedProductListSerializer(serializers.ModelSerializer):
         except Product.DoesNotExist:
             return None
         
-    def get_category_name(self, obj):
+    def get_category_name_l4(self, obj):
         try:
             return obj.product_id.classifier.l4_name if obj.product_id and obj.product_id.classifier else None
+        except AttributeError:
+            return None
+        except Product.DoesNotExist:
+            return None
+        except Classifier.DoesNotExist:
+            return None
+        
+    def get_category_name_l3(self, obj):
+        try:
+            return obj.product_id.classifier.l3_name if obj.product_id and obj.product_id.classifier else None
+        except AttributeError:
+            return None
+        except Product.DoesNotExist:
+            return None
+        except Classifier.DoesNotExist:
+            return None
+        
+    def get_category_name_l2(self, obj):
+        try:
+            return obj.product_id.classifier.l2_name if obj.product_id and obj.product_id.classifier else None
         except AttributeError:
             return None
         except Product.DoesNotExist:
