@@ -1,4 +1,5 @@
 import json
+from django.db.models import Value
 from django.forms import model_to_dict
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -592,30 +593,32 @@ class ExcludedProductListView(generics.ListAPIView):
 
         return queryset.order_by('graph_id')
     
-class IncludedInvoiceListView(generics.ListAPIView):#общая сумма продуктов в накладных 
+class IncludedInvoiceListView(generics.ListAPIView):#включенные накладные в график с общей суммой
     permission_classes = [AllowAny]
     serializer_class = VendDocSerializer
     pagination_class = BasePagination
     
     def get_queryset(self):
-        queryset = IncludedProductList.objects.all()
-    
+        # queryset = IncludedProductList.objects.all()
+        queryset_venddoc = Venddoc.objects.all().order_by('vendor_id')
+
         graph_id = self.request.query_params.get('graph_id', None)
 
         if graph_id:
-            queryset = queryset.filter(graph_id=graph_id)
-            qty_values = queryset.values_list('qty', flat=True)
-            total_qty = sum(qty for qty in qty_values if qty is not None)
+            queryset = IncludedProductList.objects.all().filter(graph_id=graph_id)
+            docid_list = queryset.values_list('invoice_id', flat=True)
+            queryset_venddoc = queryset_venddoc.filter(docid__in=docid_list)
+
+            queryset_venddoc = queryset_venddoc.annotate(
+                total_qty=Sum('venddoclines__includedproductlist__qty')
+            )
             
-        queryset_venddoc = Venddoc.objects.all().order_by('vendor_id')
-
-        docid_list = queryset.values_list('invoice_id', flat=True)
-
-        queryset_venddoc = queryset_venddoc.filter(docid__in=docid_list)
-
-        
-        # return queryset_venddoc
-        return JsonResponse({'total_sum' :total_qty})
+            if 'total_qty' not in VendDocSerializer.Meta.fields:
+                # Если total_qty не было, добавляем его в fields
+                VendDocSerializer.Meta.fields.append('total_qty')
+           
+        return queryset_venddoc
+       
 
 class EntityListView(generics.ListAPIView):
     permission_classes = [AllowAny]
