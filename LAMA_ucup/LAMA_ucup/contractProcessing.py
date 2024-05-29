@@ -26,5 +26,4 @@ class ContractProcessing:
         contract_name += ",".join(provider_list) + '_' + ",".join(brand_list)
         response_data['name'] = contract_name
 
-        print(contract_name)
         return JsonResponse(response_data, status=status.HTTP_200_OK)
