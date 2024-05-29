@@ -30,24 +30,22 @@ class VenddocProcessing:
                     included_product.save()
 
     @staticmethod
-    def products_amount_sum_in_range(graph_id, tax):
+    def products_amount_sum_in_range(graph_id, tax, exclude_return, negative_turnover):
         """
         Рассчитать сумму Amount в указанном диапазоне дат и для указанных vendor_id, entity_id и graph_id.
         """
-        # return (
-        #     IncludedProductList.objects
-        #     .filter(
-        #         graph_id=graph_id,
-        #     )
-        #     .aggregate(sum_amount=Sum('amount'))['sum_amount'] or 0
-        # )
-    
         queryset = IncludedProductList.objects.filter(graph_id=graph_id)
 
+        if not negative_turnover:
+            queryset = queryset.filter(amount__gt=0)
+            
+        if exclude_return:
+            queryset = queryset.exclude(rec_id__docid__doctype='4')
+            
         if tax:
             sum_amount = queryset.annotate(total_amount=F('amount') + F('rec_id__amount_vat')).aggregate(sum_amount=Sum('total_amount'))['sum_amount'] or 0
         else:
-            sum_amount = queryset.aggregate(sum_amount=Sum('amount'))['sum_amount'] or 0
+            sum_amount = queryset.aggregate(sum_amount=Sum('amount'))['sum_amount'] or 0 #all
 
         return sum_amount
 

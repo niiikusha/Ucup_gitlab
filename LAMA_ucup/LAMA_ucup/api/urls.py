@@ -21,6 +21,8 @@ from .views import *
 app_name = 'LAMA_ucup'
 
 urlpatterns = [
+    
+    path('get_customer_dir_party/<str:pk>/', get_customer_dir_party), #выводит всех клиентов по dir party поставщика
     path('excluded_venddoc_detail/<int:pk>/', ExcludedVenddocView.as_view()),
     path('bonus_condition_detail/<int:pk>/', BonusConditionView.as_view()),
 
