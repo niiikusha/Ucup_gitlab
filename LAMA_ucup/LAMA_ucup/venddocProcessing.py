@@ -70,21 +70,27 @@ class VenddocProcessing:
             vendors_dir_party = list(entities_merge.values_list('vendor_id', flat=True))
             vendors_dir_party.append(vendor_id)
             print('vendor_dir_party', vendor_dir_party)
+
+            venddoc_rows = Venddoc.objects.filter( # vendor_id__in=vendors_dir_party,
+                vendor_id__in=vendors_dir_party,
+                entity_id__in=entity_merge_ids,
+                invoice_date__gte=start_date,
+                invoice_date__lte=end_date
+            )
         else:
             entity_merge_ids = entity_id
             vendors_dir_party = vendor_id
+            venddoc_rows = Venddoc.objects.filter( # vendor_id__in=vendors_dir_party,
+                vendor_id=vendor_id,
+                entity_id=entity_id,
+                invoice_date__gte=start_date,
+                invoice_date__lte=end_date
+            )
         print('entity_merge_ids', entity_merge_ids)
         print('vendors_dir_party', vendors_dir_party)
         print('start_date', start_date)
         print('end_date', end_date)
         excluded_venddoc = ExcludedVenddoc.objects.filter(ku_id = graph_instance.ku_id)
-
-        venddoc_rows = Venddoc.objects.filter( # vendor_id__in=vendors_dir_party,
-            vendor_id=vendors_dir_party,
-            entity_id=entity_merge_ids,
-            invoice_date__gte=start_date,
-            invoice_date__lte=end_date
-        )
         print('venddoc_rows', venddoc_rows)
         if excluded_venddoc is not None: #исключение накладных
             excluded_docid = excluded_venddoc.values_list('docid', flat=True)

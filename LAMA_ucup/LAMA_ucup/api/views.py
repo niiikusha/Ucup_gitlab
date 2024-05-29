@@ -1248,10 +1248,9 @@ class ProductListView(generics.ListAPIView):
 @permission_classes([AllowAny])
 def get_customer_dir_party(request, pk: str): 
     try:
-        # vendor_id = request.query_params.get('vendor_id', None)
         vendor = Vendor.objects.get(vendor_id=pk)
-        queryset = Customer.objects.filter(dir_party=vendor.dir_party)
-        serializer = CustomerSerializer(queryset, many=True)
+        customer = Customer.objects.get(dir_party=vendor.dir_party, entity_id = vendor.entity_id)
+        serializer = CustomerSerializer(customer)
         return Response(serializer.data)
     except Customer.DoesNotExist:
         return Response({"message": "Такого клиента не существует"}, status=status.HTTP_404_NOT_FOUND)
