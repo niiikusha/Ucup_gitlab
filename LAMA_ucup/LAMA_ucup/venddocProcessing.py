@@ -1,16 +1,26 @@
 
 
 from django.db.models import Sum, F
-from .models import IncludedProduct, Venddoc, IncludedProductList, KuGraph, Product, Classifier, Venddoclines, ExcludedProduct, ExcludedProductList, ExcludedVenddoc, Entity, Vendor
+from .models import IncludedProduct, Venddoc, IncludedProductList, KuGraph, Product, Classifier, Venddoclines, ExcludedProduct, ExcludedProductList, ExcludedVenddoc, Entity, Vendor, IncludedVenddoc
 
 
 class VenddocProcessing:
     @staticmethod
-    def save_venddoclines_to_included_products(venddoclines_rows, graph_id):
+    def save_venddoclines_to_included_products(venddoclines_rows, graph_id, exclude_return, negative_turnover):
         """
         Сохранить данные из venddoclines_rows в IncludedProductList.
         """
+
         if venddoclines_rows is not None:
+            if not negative_turnover:
+                venddoclines_rows = venddoclines_rows.filter(amount__gt=0)
+
+            if exclude_return:
+                venddoclines_rows = venddoclines_rows.exclude(docid__doctype='4')
+            print('venddoclines_rows', venddoclines_rows)
+            unique_venddocs = set(venddocline.get('docid_id') for venddocline in venddoclines_rows) #уникальные накладные
+            print('unique_venddocs ', unique_venddocs )
+
             for venddoclines_row in venddoclines_rows:
                     product_id_id = venddoclines_row.get('product_id_id')
                     recid = venddoclines_row.get('recid')
@@ -29,6 +39,25 @@ class VenddocProcessing:
                     print('invoice_id', venddoclines_row.get('docid'))
                     included_product.save()
 
+            for venddoc in unique_venddocs:
+                venddoclines_for_venddoc = venddoclines_rows.filter(docid=venddoc)
+                # total_amount = venddoclines_for_venddoc.aggregate(total_amount=Sum('amount'))['total_amount']
+                # total_amount_vat =  venddoclines_for_venddoc.aggregate(total_amount_vat=Sum('amount_vat'))['total_amount_vat']
+
+                total_amount_and_vat = venddoclines_for_venddoc.aggregate(
+                    total_amount=Sum('amount'),
+                    total_amount_vat=Sum('amount_vat')
+                )
+                
+                included_venddoc = IncludedVenddoc(
+                    graph = graph_id,
+                    venddoc = venddoc,
+                    sum = total_amount_and_vat['total_amount'],
+                    sum_tax = total_amount_and_vat['total_amount_vat']
+                )
+                included_venddoc.save()
+            
+
     @staticmethod
     def products_amount_sum_in_range(graph_id, tax, exclude_return, negative_turnover):
         """
@@ -36,11 +65,11 @@ class VenddocProcessing:
         """
         queryset = IncludedProductList.objects.filter(graph_id=graph_id)
 
-        if not negative_turnover:
-            queryset = queryset.filter(amount__gt=0)
+        # if not negative_turnover:
+        #     queryset = queryset.filter(amount__gt=0)
             
-        if exclude_return:
-            queryset = queryset.exclude(rec_id__docid__doctype='4')
+        # if exclude_return:
+        #     queryset = queryset.exclude(rec_id__docid__doctype='4')
             
         if tax:
             sum_amount = queryset.annotate(total_amount=F('amount') + F('rec_id__amount_vat')).aggregate(sum_amount=Sum('total_amount'))['sum_amount'] or 0

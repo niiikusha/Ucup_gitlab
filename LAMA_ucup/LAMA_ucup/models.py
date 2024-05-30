@@ -231,7 +231,12 @@ class IncludedProduct(models.Model):
     class Meta:
         db_table = 'included_product'
 
-
+class IncludedVenddoc(models.Model):
+    venddoc = models.ForeignKey('Venddoc', models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    sum = models.FloatField('Сумма без ндс', blank=True, null=True)
+    sum_tax = models.FloatField('Сумма с ндс', blank=True, null=True)
+    graph = models.ForeignKey('KuGraph', models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+    
 class IncludedProductList(models.Model):
     graph_id = models.BigIntegerField('Graph_id', blank=True, null=True)  # Field name made lowercase.
     product_id = models.ForeignKey('Product', models.DO_NOTHING, db_column='product_id', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
