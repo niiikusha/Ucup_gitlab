@@ -51,7 +51,7 @@ urlpatterns = [
 
     path('included_product_list/', IncludedProductListView.as_view()),
     path('included_invoice_list/', IncludedInvoiceListView.as_view()),
-    path('included_venddoc/',  IncludedVenddocView.as_view()), #включенные накладные в график
+    path('included_venddoc_list/',  IncludedVenddocView.as_view()), #включенные накладные в график
 
     path('excluded_product_list/', ExcludedProductListView.as_view()),
 
