@@ -27,15 +27,16 @@ class IncludedVenddocSerializer(serializers.ModelSerializer):
     invoice_status = serializers.SerializerMethodField()
 
     total_qty = serializers.FloatField(required=False)  # Сделаем поле необязательным
+    total_sum_tax = serializers.FloatField(required=False)  # Сделаем поле необязательным
 
     def __init__(self, *args, **kwargs):
         # Проверяем, добавлено ли total_qty в поля через аннотацию
         if 'total_qty' in kwargs.get('context', {}).get('fields', []):
             # Если да, делаем поле обязательным
             self.fields['total_qty'].required = True
-
         super().__init__(*args, **kwargs)
 
+    
     class Meta:
         model = IncludedVenddoc
         fields = ['id', 'graph', 'sum', 'sum_tax', 'venddoc', 'total_qty', 'invoice_number', 'invoice_date', 'purch_number', 'purch_date', 'invoice_status']

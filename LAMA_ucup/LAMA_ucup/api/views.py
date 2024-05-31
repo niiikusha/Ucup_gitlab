@@ -19,6 +19,7 @@ from django.db.models import F
 from ..models import Entity, Ku
 from django.db.models import OuterRef, Subquery
 from ..graphProcessing import GraphProcessing
+from ..venddocProcessing import VenddocProcessing
 from ..kuProcessing import KuProcessing
 from ..kuCustomerProcessing import KuCustomerProcessing
 from ..graphCustomerProcessing import GraphCustomerProcessing
@@ -78,14 +79,19 @@ class IncludedVenddocView(generics.ListAPIView): #добавление/обно�
             includedProductList = IncludedProductList.objects.all().filter(graph_id=graph_id)
             docid_list = includedProductList.values_list('invoice_id', flat=True)
             queryset = queryset.filter(venddoc__in=docid_list)
-
             queryset = queryset.annotate(
                 total_qty=Sum('venddoc__venddoclines__includedproductlist__qty')
             )
-            
+            queryset = queryset.annotate(
+                total_sum_tax = Sum('venddoc__venddoclines__includedproductlist__amount')
+            )
             if 'total_qty' not in IncludedVenddocSerializer.Meta.fields:
                 # Если total_qty не было, добавляем его в fields
                 IncludedVenddocSerializer.Meta.fields.append('total_qty')
+            
+            # if 'total_sum_tax' not in IncludedVenddocSerializer.Meta.fields:
+            #     # Если total_qty не было, добавляем его в fields
+            #     IncludedVenddocSerializer.Meta.fields.append('total_sum_tax')
             
         return queryset
 

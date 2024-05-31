@@ -39,22 +39,3 @@ class CategoryLogic:
                 Category.objects.create(external_id=msg['rec_id'], hierarchy_key_id=msg['hierarchy_rec_id'], 
                                    category_parent = msg['parent_rec_id'], name = msg['name'], external_code = msg['code'], lvl = msg['lvl'])
            
-
-
-# { queuing.reference.categories
-#  "hierarchy_key_id": "5637144577",
-#  "category_parent": "5637377086",
-#  "name": "СМЕСИ, СПЕЦИИ, ПРИПРАВЫ, ДОБАВКИ РАСТИТЕЛЬНОГО ПРОИСХОЖДЕНИЯ ВЕС (СП)!",
-#  "external_code": "ROOT42000503",
-#  "lvl": "5",
-#  "external_id": "5637378582"
-# }
-# {
-#  "hierarchy_rec_id": "5637144576",
-#  "parent_rec_id": "5637256489",
-#  "name": "ДРУГИЕ ПРОДУКТЫ ДЛЯ КОШЕК",
-#  "code": "Ax010O0100",
-#  "lvl": "5",
-#  "rec_id": "5637257035",
-#  "hierarchy_code": "Procurement"
-# }

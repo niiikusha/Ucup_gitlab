@@ -19,7 +19,6 @@ class VenddocProcessing:
                 venddoclines_rows = venddoclines_rows.exclude(docid__doctype='4')
             
             unique_venddocs = set(venddocline.docid for venddocline in venddoclines_rows) #уникальные накладные
-            print('unique_venddocs ', unique_venddocs )
 
             for venddoclines_row in venddoclines_rows:
                     included_product = IncludedProductList(
@@ -32,7 +31,7 @@ class VenddocProcessing:
                     )
                     # print('invoice_id', venddoclines_row.get('docid'))
                     included_product.save()
-            print('unique_venddocs', unique_venddocs)
+            
             for venddoc in unique_venddocs:
                 venddoclines_for_venddoc = venddoclines_rows.filter(docid=venddoc)
 
@@ -54,7 +53,7 @@ class VenddocProcessing:
             
 
     @staticmethod
-    def products_amount_sum_in_range(graph_id, tax, exclude_return, negative_turnover):
+    def products_amount_sum_in_range(graph_id, tax):
         """
         Рассчитать сумму Amount в указанном диапазоне дат и для указанных vendor_id, entity_id и graph_id.
         """
@@ -192,5 +191,5 @@ class VenddocProcessing:
                     rec_id=rec_id_instance,
                 )
                 excluded_product.save()
-        print('venddoclines_rows', venddoclines_rows)
+        
         return venddoclines_rows
