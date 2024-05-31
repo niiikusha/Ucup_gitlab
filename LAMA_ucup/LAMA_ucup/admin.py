@@ -5,7 +5,7 @@ admin.site.register(Entity)
 admin.site.register(AuthUser)
 admin.site.register(Vendor)
 admin.site.register(Product)
-admin.site.register(ClassifierTest)
+
 admin.site.register(Brandclassifier)
 admin.site.register(Classifier)
 admin.site.register(IncludedProduct)

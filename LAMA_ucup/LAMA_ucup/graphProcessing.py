@@ -198,7 +198,7 @@ class GraphProcessing:
                 
                 venddoc_processing = VenddocProcessing
                 venddoclines_rows = venddoc_processing.products_amount_sum_in_range_vse(start_date, end_date, vendor_id, entity_id, graph_id)
-                venddoc_processing.save_venddoclines_to_included_products(venddoclines_rows, graph_id, exclude_return, negative_turnover)
+                venddoc_processing.save_venddoclines_to_included_products(venddoclines_rows, graph_instance, exclude_return, negative_turnover)
                 print('venddoclines_rows', venddoclines_rows)
                 # graph_instance = KuGraph.objects.get(graph_id=graph_id)
                 sum_calc = venddoc_processing.products_amount_sum_in_range(graph_id, tax,  exclude_return, negative_turnover)

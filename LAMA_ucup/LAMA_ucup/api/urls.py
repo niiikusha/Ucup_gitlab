@@ -31,7 +31,6 @@ urlpatterns = [
 
     path('manager_detail/<int:pk>/', ManagerView.as_view()),
 
-    path('classifiersTest/', ClassifierTestList.as_view()),
     path('classifier_tree/', ClassifierTreeView.as_view()),
 
     path('category_list/', CategoryListView.as_view()),
@@ -40,8 +39,6 @@ urlpatterns = [
 
     path('vendor_detail/<str:pk>/', VendorDetailView.as_view()),
     path('entity_detail/<str:pk>/', EntityDetailView.as_view()),
-
-    path('kafka_process/',kafka_process, name='ku_create'),
 
     path('manager_list/', ManagerListView.as_view()),
     path('manager_ku/', ManagerKuListView.as_view()),
@@ -54,6 +51,7 @@ urlpatterns = [
 
     path('included_product_list/', IncludedProductListView.as_view()),
     path('included_invoice_list/', IncludedInvoiceListView.as_view()),
+    path('included_venddoc/',  IncludedVenddocView.as_view()), #включенные накладные в график
 
     path('excluded_product_list/', ExcludedProductListView.as_view()),
 
@@ -91,7 +89,7 @@ urlpatterns = [
     path('product_list/', ProductListView.as_view()),
     path('product_filter', products_filter, name ='products_filter'),
 
-    path('vend_doc_list/', VendDocListView.as_view()),
+    path('vend_doc_list/', VendDocListView.as_view()), 
 
     path('vendor_list/', VendorListViewSet.as_view(actions={'get': 'list'}), name='vendor-list'),
     path('vendor_filter/', VendorNameFilterView.as_view()),

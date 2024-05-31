@@ -65,6 +65,34 @@ class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView): #добавле�
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
 
+class IncludedVenddocView(generics.ListAPIView): #добавление/обновление/удаление в одном
+    permission_classes = [AllowAny]
+    serializer_class = IncludedVenddocSerializer
+    pagination_class = BasePagination
+
+    def get_queryset(self):
+        queryset = IncludedVenddoc.objects.all()
+        graph_id = self.request.query_params.get('graph_id', None)
+
+        # if graph_id:
+        #     queryset = queryset.filter(graph=graph_id)
+        
+        if graph_id:
+            includedProductList = IncludedProductList.objects.all().filter(graph_id=graph_id)
+            docid_list = includedProductList.values_list('invoice_id', flat=True)
+            print('docid_list', docid_list)
+            queryset = queryset.filter(venddoc__in=docid_list)
+
+            queryset = queryset.annotate(
+                total_qty=Sum('venddoc__venddoclines__includedproductlist__qty')
+            )
+            
+            if 'total_qty' not in IncludedVenddocSerializer.Meta.fields:
+                # Если total_qty не было, добавляем его в fields
+                IncludedVenddocSerializer.Meta.fields.append('total_qty')
+        return queryset
+
+
 class ArticleListView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = ArticleSerializer
@@ -179,6 +207,7 @@ class IncludedServiceListView(generics.ListCreateAPIView):
             queryset = queryset.filter(ku=ku_id)
 
         return queryset
+    
 class IncludedServiceDetailView(generics.RetrieveUpdateDestroyAPIView): #добавление/обновление/удаление в одном
     permission_classes = [AllowAny]
     queryset = IncludedService.objects.all()
@@ -430,16 +459,6 @@ class ExcludedVenddocFullView(generics.ListAPIView): #добавление/об�
             queryset = queryset.filter(docid__in=docid_list)
 
         return queryset
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def kafka_process(request):
-    data = json.loads(request.body)
-     # Предполагается, что структура данных совместима с сообщением Kafka
-    listener = Listener()
-    listener.processor.process_message(data)
-    
-    return JsonResponse({'message': 'Данные успешно получены и обработаны.'}, status=200)
     
 class CategoryListView(generics.ListAPIView):
     permission_classes = [AllowAny]
@@ -471,10 +490,7 @@ class BonusConditionList(generics.ListCreateAPIView):
 
         return queryset
 
-class ClassifierTestList(generics.ListCreateAPIView):
-    permission_classes = [AllowAny]
-    queryset = ClassifierTest.objects.all()
-    serializer_class = ClassifierTestSerializer
+
 
 class ExcludedVenddocList(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
@@ -806,12 +822,16 @@ class VendDocListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = Venddoc.objects.all().order_by('-invoice_date')
-
+        
+        docid = self.request.query_params.get('docid', None)
         entity_ids = self.request.query_params.getlist('entity_id', [])
         vendor_ids = self.request.query_params.getlist('vendor_id', [])  
         start_date = self.request.query_params.get('start_date', None)
         end_date = self.request.query_params.get('end_date', None)
 
+        if docid:
+            queryset = queryset.filter(docid=docid)
+            
         if start_date and end_date:
             queryset = queryset.filter(invoice_date__range=[start_date, end_date])
 

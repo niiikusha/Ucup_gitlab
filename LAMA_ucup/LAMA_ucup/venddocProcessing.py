@@ -6,7 +6,7 @@ from .models import IncludedProduct, Venddoc, IncludedProductList, KuGraph, Prod
 
 class VenddocProcessing:
     @staticmethod
-    def save_venddoclines_to_included_products(venddoclines_rows, graph_id, exclude_return, negative_turnover):
+    def save_venddoclines_to_included_products(venddoclines_rows, graph_instance, exclude_return, negative_turnover):
         """
         Сохранить данные из venddoclines_rows в IncludedProductList.
         """
@@ -17,43 +17,38 @@ class VenddocProcessing:
 
             if exclude_return:
                 venddoclines_rows = venddoclines_rows.exclude(docid__doctype='4')
-            print('venddoclines_rows', venddoclines_rows)
-            unique_venddocs = set(venddocline.get('docid_id') for venddocline in venddoclines_rows) #уникальные накладные
+            
+            unique_venddocs = set(venddocline.docid for venddocline in venddoclines_rows) #уникальные накладные
             print('unique_venddocs ', unique_venddocs )
 
             for venddoclines_row in venddoclines_rows:
-                    product_id_id = venddoclines_row.get('product_id_id')
-                    recid = venddoclines_row.get('recid')
-            # Получите экземпляр Product по идентификатору
-                    product_instance = Product.objects.get(itemid=product_id_id)
-                    rec_id_instance = Venddoclines.objects.get(recid=recid)
-            
                     included_product = IncludedProductList(
-                        product_id=product_instance,
-                        invoice_id = venddoclines_row.get('docid_id'),
-                        amount = venddoclines_row.get('amount'),
-                        qty = venddoclines_row.get('qty'),
-                        graph_id = graph_id,
-                        rec_id =  rec_id_instance,
+                        product_id=venddoclines_row.product_id,
+                        invoice_id = venddoclines_row.docid,
+                        amount = venddoclines_row.amount,
+                        qty = venddoclines_row.qty,
+                        graph_id = graph_instance.graph_id,
+                        rec_id = venddoclines_row,
                     )
-                    print('invoice_id', venddoclines_row.get('docid'))
+                    # print('invoice_id', venddoclines_row.get('docid'))
                     included_product.save()
-
+            print('unique_venddocs', unique_venddocs)
             for venddoc in unique_venddocs:
                 venddoclines_for_venddoc = venddoclines_rows.filter(docid=venddoc)
-                # total_amount = venddoclines_for_venddoc.aggregate(total_amount=Sum('amount'))['total_amount']
-                # total_amount_vat =  venddoclines_for_venddoc.aggregate(total_amount_vat=Sum('amount_vat'))['total_amount_vat']
 
                 total_amount_and_vat = venddoclines_for_venddoc.aggregate(
                     total_amount=Sum('amount'),
-                    total_amount_vat=Sum('amount_vat')
+                    total_amount_vat=Sum('amount_vat') 
                 )
-                
+                total_amount = total_amount_and_vat['total_amount']
+                total_amount_vat = total_amount_and_vat['total_amount_vat']
+            
+
                 included_venddoc = IncludedVenddoc(
-                    graph = graph_id,
+                    graph = graph_instance,
                     venddoc = venddoc,
-                    sum = total_amount_and_vat['total_amount'],
-                    sum_tax = total_amount_and_vat['total_amount_vat']
+                    sum = round(total_amount, 2),
+                    sum_tax = round(total_amount + total_amount_vat, 2)
                 )
                 included_venddoc.save()
             
@@ -63,18 +58,18 @@ class VenddocProcessing:
         """
         Рассчитать сумму Amount в указанном диапазоне дат и для указанных vendor_id, entity_id и graph_id.
         """
-        queryset = IncludedProductList.objects.filter(graph_id=graph_id)
+        # queryset = IncludedProductList.objects.filter(graph_id=graph_id)
+        includedVenddoc = IncludedVenddoc.objects.filter(graph_id=graph_id)
 
-        # if not negative_turnover:
-        #     queryset = queryset.filter(amount__gt=0)
-            
-        # if exclude_return:
-        #     queryset = queryset.exclude(rec_id__docid__doctype='4')
-            
         if tax:
-            sum_amount = queryset.annotate(total_amount=F('amount') + F('rec_id__amount_vat')).aggregate(sum_amount=Sum('total_amount'))['sum_amount'] or 0
+            sum_amount = includedVenddoc.aggregate(sum_amount=Sum('sum_tax'))['sum_amount'] or 0
         else:
-            sum_amount = queryset.aggregate(sum_amount=Sum('amount'))['sum_amount'] or 0 #all
+            sum_amount = includedVenddoc.aggregate(sum_amount=Sum('sum'))['sum_amount'] or 0 
+
+        # if tax:
+        #     sum_amount = queryset.annotate(total_amount=F('amount') + F('rec_id__amount_vat')).aggregate(sum_amount=Sum('total_amount'))['sum_amount'] or 0
+        # else:
+        #     sum_amount = queryset.aggregate(sum_amount=Sum('amount'))['sum_amount'] or 0 #all
 
         return sum_amount
 
@@ -98,7 +93,6 @@ class VenddocProcessing:
             vendor_dir_party = Vendor.objects.filter(entity_id=entity_merge_ids[0], dir_party = dir_party)
             vendors_dir_party = list(entities_merge.values_list('vendor_id', flat=True))
             vendors_dir_party.append(vendor_id)
-            print('vendor_dir_party', vendor_dir_party)
 
             venddoc_rows = Venddoc.objects.filter( # vendor_id__in=vendors_dir_party,
                 vendor_id__in=vendors_dir_party,
@@ -115,12 +109,7 @@ class VenddocProcessing:
                 invoice_date__gte=start_date,
                 invoice_date__lte=end_date
             )
-        print('entity_merge_ids', entity_merge_ids)
-        print('vendors_dir_party', vendors_dir_party)
-        print('start_date', start_date)
-        print('end_date', end_date)
         excluded_venddoc = ExcludedVenddoc.objects.filter(ku_id = graph_instance.ku_id)
-        print('venddoc_rows', venddoc_rows)
         if excluded_venddoc is not None: #исключение накладных
             excluded_docid = excluded_venddoc.values_list('docid', flat=True)
             venddoc_rows = venddoc_rows.exclude(docid__in=excluded_docid)
@@ -153,70 +142,55 @@ class VenddocProcessing:
         docids = venddoc_rows.values_list('docid', flat=True)
 
         if included_condition_list_all:
-            venddoclines_rows = Venddoclines.objects.filter(docid__in=venddoc_rows.values_list('docid', flat=True)).values()
-            
+            venddoclines_rows = Venddoclines.objects.filter(docid__in=venddoc_rows.values_list('docid', flat=True))
 
         elif included_condition_list_table and included_condition_list_category:
-            venddoclines_rows_table = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes).values()
-            print('venddoclines_rows_table ', venddoclines_rows_table )
+            venddoclines_rows_table = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes)
 
-            venddoclines_rows_category = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
-            print('venddoclines_rows_category ', venddoclines_rows_category )
+            venddoclines_rows_category = Venddoclines.objects.filter(docid__in=docids, product_id__in=products_itemid_list)
 
-            venddoclines_rows = venddoclines_rows_table.filter(product_id__in = products_itemid_list)
-            print(' venddoclines_rows', venddoclines_rows)
-            # return venddoclines_rows
+            venddoclines_rows = venddoclines_rows_table.filter(product_id__in=products_itemid_list)
 
         elif included_condition_list_table:
-            venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes).values()
+            venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in=table_item_codes)
 
         elif included_condition_list_category:
-            venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in = products_itemid_list).values()
-        #Исключенные товары
+            venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in=products_itemid_list)
+
+        # Исключенные товары
         excluded_venddoclines_rows = []
 
         if excluded_condition_list_table and excluded_condition_list_category:
-            excluded_venddoclines_rows_table = Venddoclines.objects.filter(docid__in=docids, product_id__in=excluded_table_item_codes).values()
-            print('excluded_venddoclines_rows_table ', excluded_venddoclines_rows_table )
+            excluded_venddoclines_rows_table = Venddoclines.objects.filter(docid__in=docids, product_id__in=excluded_table_item_codes)
 
-            excluded_venddoclines_rows_category = Venddoclines.objects.filter(docid__in=docids, product_id__in = excluded_products_itemid_list).values()
-            print('venddoclines_rows_category ', venddoclines_rows_category )
+            excluded_venddoclines_rows_category = Venddoclines.objects.filter(docid__in=docids, product_id__in=excluded_products_itemid_list)
 
-            excluded_venddoclines_rows = excluded_venddoclines_rows_table.filter(product_id__in = excluded_products_itemid_list)
-            print(' excluded_venddoclines_rows', excluded_venddoclines_rows)
-            # return excluded_venddoclines_rows
+            excluded_venddoclines_rows = excluded_venddoclines_rows_table.filter(product_id__in=excluded_products_itemid_list)
 
         elif excluded_condition_list_table:
-            excluded_venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in=excluded_table_item_codes).values()
+            excluded_venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in=excluded_table_item_codes)
 
         elif included_condition_list_category:
-            excluded_venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in = excluded_products_itemid_list).values()
+            excluded_venddoclines_rows = Venddoclines.objects.filter(docid__in=docids, product_id__in=excluded_products_itemid_list)
 
         if excluded_venddoclines_rows:
-            excluded_recids = [row['recid'] for row in excluded_venddoclines_rows]
+            excluded_recids = [row.recid for row in excluded_venddoclines_rows]
             venddoclines_rows = venddoclines_rows.exclude(recid__in=excluded_recids)
 
-          
-        if excluded_venddoclines_rows is not None: #сохранение исключенных продуктов
+        # Сохранение исключенных продуктов
+        if excluded_venddoclines_rows:
             for venddoclines_row in excluded_venddoclines_rows:
-                product_id_id = venddoclines_row.get('product_id_id')
-                recid = venddoclines_row.get('recid')
-                # Получите экземпляр Product по идентификатору
-                product_instance = Product.objects.get(itemid=product_id_id)
-                rec_id_instance = Venddoclines.objects.get(recid=recid)
+                product_instance = venddoclines_row.product_id
+                rec_id_instance = venddoclines_row
 
                 excluded_product = ExcludedProductList(
                     product_id=product_instance,
-                    invoice_id=venddoclines_row.get('docid_id'),
-                    amount=venddoclines_row.get('amount'),
-                    qty = venddoclines_row.get('qty'),
+                    invoice_id=venddoclines_row.docid,
+                    amount=venddoclines_row.amount,
+                    qty=venddoclines_row.qty,
                     graph_id=graph_instance,
                     rec_id=rec_id_instance,
                 )
-                print('excluded_invoice_id', venddoclines_row.get('docid'))
                 excluded_product.save()
-            
-
-        # venddoclines_rows = venddoclines_rows.exclude(recid__in=excluded_venddoclines_rows.values('recid'))
         print('venddoclines_rows', venddoclines_rows)
         return venddoclines_rows

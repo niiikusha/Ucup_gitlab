@@ -125,18 +125,6 @@ class Customer(models.Model):
        
         db_table = 'customer'
 
-class ClassifierTest(models.Model):
-    classifier_code = models.CharField(max_length=12, unique=True)
-    name = models.CharField(max_length=50)
-    parent_code = models.CharField(max_length=12)
-
-    class Meta:
-        
-        db_table = 'app_classifier'
-
-    def __str__(self):
-        return f"Код классификатора: {self.classifier_code}, Имя: {self.name}, Код родителя: {self.parent_code}"
-
 
 class Assortment(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -236,12 +224,16 @@ class IncludedVenddoc(models.Model):
     sum = models.FloatField('Сумма без ндс', blank=True, null=True)
     sum_tax = models.FloatField('Сумма с ндс', blank=True, null=True)
     graph = models.ForeignKey('KuGraph', models.DO_NOTHING, db_constraint=False, blank=True, null=True)
+
+    class Meta:
+        db_table = 'included_venddoc'
     
 class IncludedProductList(models.Model):
     graph_id = models.BigIntegerField('Graph_id', blank=True, null=True)  # Field name made lowercase.
     product_id = models.ForeignKey('Product', models.DO_NOTHING, db_column='product_id', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
     amount = models.FloatField('Amount', blank=True, null=True)  # Field name made lowercase.
-    invoice_id = models.CharField('Invoice_id', blank=True, null=True)  # Field name made lowercase.
+    # invoice_id = models.CharField('Invoice_id', blank=True, null=True)  # Field name made lowercase.
+    invoice_id = models.ForeignKey('Venddoc' ,models.DO_NOTHING, db_column=' invoice_id', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
     inc_prod_list = models.BigAutoField(db_column='inc_prod_list', primary_key=True)  # Field name made lowercase.
     rec_id = models.ForeignKey('Venddoclines', models.DO_NOTHING, db_column='rec_id', db_constraint=False, blank=True, null=True)  # Field name made lowercase.
     qty = models.IntegerField('Количество', blank=True, null=True)

@@ -19,6 +19,25 @@ class PlaceServiceSerializer(serializers.ModelSerializer):
         model = PlaceService
         fields = '__all__'
 
+class IncludedVenddocSerializer(serializers.ModelSerializer):
+    
+    total_qty = serializers.FloatField(required=False)  # Сделаем поле необязательным
+
+    def __init__(self, *args, **kwargs):
+        # Проверяем, добавлено ли total_qty в поля через аннотацию
+        if 'total_qty' in kwargs.get('context', {}).get('fields', []):
+            # Если да, делаем поле обязательным
+            self.fields['total_qty'].required = True
+
+        super().__init__(*args, **kwargs)
+        
+    class Meta:
+        model = IncludedVenddoc
+        fields = ['id', 'graph', 'sum', 'sum_tax', 'venddoc', 'total_qty']
+
+        total_qty = serializers.FloatField(required=False)  # Сделаем поле необязательным
+
+
 class PriceListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PriceList
@@ -92,11 +111,8 @@ class KuCustomerSerializer(serializers.ModelSerializer):
 
     def get_customer_name(self, obj):
         return obj.customer.name if obj.customer else None
-#поставщики
-class ClassifierTestSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClassifierTest
-        fields = '__all__'
+
+
 
 class ManagerSerializer(serializers.ModelSerializer):
     class Meta:
