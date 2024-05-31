@@ -73,14 +73,10 @@ class IncludedVenddocView(generics.ListAPIView): #добавление/обно�
     def get_queryset(self):
         queryset = IncludedVenddoc.objects.all()
         graph_id = self.request.query_params.get('graph_id', None)
-
-        # if graph_id:
-        #     queryset = queryset.filter(graph=graph_id)
         
         if graph_id:
             includedProductList = IncludedProductList.objects.all().filter(graph_id=graph_id)
             docid_list = includedProductList.values_list('invoice_id', flat=True)
-            print('docid_list', docid_list)
             queryset = queryset.filter(venddoc__in=docid_list)
 
             queryset = queryset.annotate(
@@ -90,6 +86,7 @@ class IncludedVenddocView(generics.ListAPIView): #добавление/обно�
             if 'total_qty' not in IncludedVenddocSerializer.Meta.fields:
                 # Если total_qty не было, добавляем его в fields
                 IncludedVenddocSerializer.Meta.fields.append('total_qty')
+            
         return queryset
 
 
@@ -823,7 +820,7 @@ class VendDocListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Venddoc.objects.all().order_by('-invoice_date')
         
-        docid = self.request.query_params.get('docid', None)
+        docid = self.request.query_params.get('doc_id', None)
         entity_ids = self.request.query_params.getlist('entity_id', [])
         vendor_ids = self.request.query_params.getlist('vendor_id', [])  
         start_date = self.request.query_params.get('start_date', None)
@@ -831,7 +828,7 @@ class VendDocListView(generics.ListAPIView):
 
         if docid:
             queryset = queryset.filter(docid=docid)
-            
+
         if start_date and end_date:
             queryset = queryset.filter(invoice_date__range=[start_date, end_date])
 

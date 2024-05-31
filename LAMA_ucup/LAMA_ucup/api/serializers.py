@@ -20,7 +20,12 @@ class PlaceServiceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class IncludedVenddocSerializer(serializers.ModelSerializer):
-    
+    invoice_number = serializers.SerializerMethodField()
+    invoice_date = serializers.SerializerMethodField()
+    purch_number = serializers.SerializerMethodField()
+    purch_date = serializers.SerializerMethodField()
+    invoice_status = serializers.SerializerMethodField()
+
     total_qty = serializers.FloatField(required=False)  # Сделаем поле необязательным
 
     def __init__(self, *args, **kwargs):
@@ -30,13 +35,43 @@ class IncludedVenddocSerializer(serializers.ModelSerializer):
             self.fields['total_qty'].required = True
 
         super().__init__(*args, **kwargs)
-        
+
     class Meta:
         model = IncludedVenddoc
-        fields = ['id', 'graph', 'sum', 'sum_tax', 'venddoc', 'total_qty']
+        fields = ['id', 'graph', 'sum', 'sum_tax', 'venddoc', 'total_qty', 'invoice_number', 'invoice_date', 'purch_number', 'purch_date', 'invoice_status']
 
         total_qty = serializers.FloatField(required=False)  # Сделаем поле необязательным
 
+    def get_purch_number(self, obj):
+        try:
+            return obj.venddoc.purch_number if obj.venddoc else None
+        except Venddoc.DoesNotExist:
+            return None
+    
+    def get_invoice_number(self, obj):
+        try:
+            return obj.venddoc.invoice_number if obj.venddoc else None
+        except Venddoc.DoesNotExist:
+            return None
+        
+    def get_invoice_date(self, obj):
+        try:
+            return obj.venddoc.invoice_date if obj.venddoc else None
+        except Venddoc.DoesNotExist:
+            return None
+        
+    def get_purch_date(self, obj):
+        try:
+            return obj.venddoc.purch_date if obj.venddoc else None
+        except Venddoc.DoesNotExist:
+            return None
+        
+    def get_invoice_status(self, obj):
+        try:
+            return obj.venddoc.invoice_status if obj.venddoc else None
+        except Venddoc.DoesNotExist:
+            return None
+        
 
 class PriceListSerializer(serializers.ModelSerializer):
     class Meta:
