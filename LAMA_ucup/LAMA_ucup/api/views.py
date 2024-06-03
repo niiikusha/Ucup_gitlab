@@ -80,18 +80,15 @@ class IncludedVenddocView(generics.ListAPIView): #добавление/обно�
             docid_list = includedProductList.values_list('invoice_id', flat=True)
             queryset = queryset.filter(venddoc__in=docid_list)
             queryset = queryset.annotate(
-                total_qty=Sum('venddoc__venddoclines__includedproductlist__qty')
+                total_qty=Sum('venddoc__venddoclines__includedproductlist__qty'),
+                sum = Sum('venddoc__venddoclines__amount'),
+                sum_tax = Sum(F('venddoc__venddoclines__amount') + F('venddoc__venddoclines__amount_vat'))
             )
-            queryset = queryset.annotate(
-                total_sum_tax = Sum('venddoc__venddoclines__includedproductlist__amount')
-            )
+            
             if 'total_qty' not in IncludedVenddocSerializer.Meta.fields:
                 # Если total_qty не было, добавляем его в fields
                 IncludedVenddocSerializer.Meta.fields.append('total_qty')
             
-            # if 'total_sum_tax' not in IncludedVenddocSerializer.Meta.fields:
-            #     # Если total_qty не было, добавляем его в fields
-            #     IncludedVenddocSerializer.Meta.fields.append('total_sum_tax')
             
         return queryset
 
@@ -635,12 +632,17 @@ class IncludedInvoiceListView(generics.ListAPIView):#включенные нак
             queryset_venddoc = queryset_venddoc.filter(docid__in=docid_list)
 
             queryset_venddoc = queryset_venddoc.annotate(
-                total_qty=Sum('venddoclines__includedproductlist__qty')
+                total_qty=Sum('venddoclines__includedproductlist__qty'),
+                total_sum_tax = Sum('venddoclines__amount')
+                
             )
             
             if 'total_qty' not in VendDocSerializer.Meta.fields:
                 # Если total_qty не было, добавляем его в fields
                 VendDocSerializer.Meta.fields.append('total_qty')
+
+            if 'total_sum_tax' not in VendDocSerializer.Meta.fields:
+                VendDocSerializer.Meta.fields.append('total_sum_tax')
            
         return queryset_venddoc
        

@@ -2,7 +2,6 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from ..models import *
 from django.db.models import Sum
-#клиенты
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,21 +26,28 @@ class IncludedVenddocSerializer(serializers.ModelSerializer):
     invoice_status = serializers.SerializerMethodField()
 
     total_qty = serializers.FloatField(required=False)  # Сделаем поле необязательным
-    total_sum_tax = serializers.FloatField(required=False)  # Сделаем поле необязательным
+    sum_tax = serializers.FloatField(required=False)  # Сделаем поле необязательным
+    sum = serializers.FloatField(required=False)  # Сделаем поле необязательным
 
     def __init__(self, *args, **kwargs):
         # Проверяем, добавлено ли total_qty в поля через аннотацию
         if 'total_qty' in kwargs.get('context', {}).get('fields', []):
             # Если да, делаем поле обязательным
             self.fields['total_qty'].required = True
+        if 'sum_tax' in kwargs.get('context', {}).get('fields', []):
+            self.fields['sum_tax'].required = True
+        if 'sum' in kwargs.get('context', {}).get('fields', []):
+            self.fields['sum'].required = True
         super().__init__(*args, **kwargs)
-
     
     class Meta:
         model = IncludedVenddoc
-        fields = ['id', 'graph', 'sum', 'sum_tax', 'venddoc', 'total_qty', 'invoice_number', 'invoice_date', 'purch_number', 'purch_date', 'invoice_status']
+        fields = ['id', 'graph', 'sum', 'sum_tax', 'venddoc', 'total_qty', 'invoice_number', 'invoice_date', 
+                  'purch_number', 'purch_date', 'invoice_status']
 
         total_qty = serializers.FloatField(required=False)  # Сделаем поле необязательным
+        sum_tax = serializers.FloatField(required=False) 
+        sum = serializers.FloatField(required=False) 
 
     def get_purch_number(self, obj):
         try:
@@ -156,9 +162,6 @@ class ManagerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ManagerKuSerializer(serializers.ModelSerializer):
-    # class Meta:
-    #     model = ManagerKu
-    #     fields = '__all__'
     group = serializers.SerializerMethodField()
     description = serializers.SerializerMethodField()
 
@@ -441,7 +444,6 @@ class EntitySerializer(serializers.ModelSerializer):
 class KuSerializer(serializers.ModelSerializer):
     entity_name = serializers.SerializerMethodField()
     vendor_name = serializers.SerializerMethodField()
-    # ku_id = serializers.ReadOnlyField(source='formatted_ku_id')
     class Meta:
         model = Ku
         fields = ['ku_id', 'vendor_id', 'vendor_name', 'entity_id', 'entity_name', 'period', 'date_start', 

@@ -29,25 +29,16 @@ class VenddocProcessing:
                         graph_id = graph_instance.graph_id,
                         rec_id = venddoclines_row,
                     )
-                    # print('invoice_id', venddoclines_row.get('docid'))
+                    
                     included_product.save()
             
             for venddoc in unique_venddocs:
-                venddoclines_for_venddoc = venddoclines_rows.filter(docid=venddoc)
-
-                total_amount_and_vat = venddoclines_for_venddoc.aggregate(
-                    total_amount=Sum('amount'),
-                    total_amount_vat=Sum('amount_vat') 
-                )
-                total_amount = total_amount_and_vat['total_amount']
-                total_amount_vat = total_amount_and_vat['total_amount_vat']
-            
+           
 
                 included_venddoc = IncludedVenddoc(
                     graph = graph_instance,
                     venddoc = venddoc,
-                    sum = round(total_amount, 2),
-                    sum_tax = round(total_amount + total_amount_vat, 2)
+                   
                 )
                 included_venddoc.save()
             
@@ -57,18 +48,12 @@ class VenddocProcessing:
         """
         Рассчитать сумму Amount в указанном диапазоне дат и для указанных vendor_id, entity_id и graph_id.
         """
-        # queryset = IncludedProductList.objects.filter(graph_id=graph_id)
-        includedVenddoc = IncludedVenddoc.objects.filter(graph_id=graph_id)
-
+        queryset = IncludedProductList.objects.filter(graph_id=graph_id)
+    
         if tax:
-            sum_amount = includedVenddoc.aggregate(sum_amount=Sum('sum_tax'))['sum_amount'] or 0
+            sum_amount = queryset.annotate(total_amount=F('amount') + F('rec_id__amount_vat')).aggregate(sum_amount=Sum('total_amount'))['sum_amount'] or 0
         else:
-            sum_amount = includedVenddoc.aggregate(sum_amount=Sum('sum'))['sum_amount'] or 0 
-
-        # if tax:
-        #     sum_amount = queryset.annotate(total_amount=F('amount') + F('rec_id__amount_vat')).aggregate(sum_amount=Sum('total_amount'))['sum_amount'] or 0
-        # else:
-        #     sum_amount = queryset.aggregate(sum_amount=Sum('amount'))['sum_amount'] or 0 #all
+            sum_amount = queryset.aggregate(sum_amount=Sum('amount'))['sum_amount'] or 0 #all
 
         return sum_amount
 
@@ -93,7 +78,7 @@ class VenddocProcessing:
             vendors_dir_party = list(entities_merge.values_list('vendor_id', flat=True))
             vendors_dir_party.append(vendor_id)
 
-            venddoc_rows = Venddoc.objects.filter( # vendor_id__in=vendors_dir_party,
+            venddoc_rows = Venddoc.objects.filter( 
                 vendor_id__in=vendors_dir_party,
                 entity_id__in=entity_merge_ids,
                 invoice_date__gte=start_date,
@@ -102,7 +87,7 @@ class VenddocProcessing:
         else:
             entity_merge_ids = entity_id
             vendors_dir_party = vendor_id
-            venddoc_rows = Venddoc.objects.filter( # vendor_id__in=vendors_dir_party,
+            venddoc_rows = Venddoc.objects.filter(
                 vendor_id=vendor_id,
                 entity_id=entity_id,
                 invoice_date__gte=start_date,

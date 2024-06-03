@@ -167,16 +167,6 @@ class Classifier(models.Model):
         db_table = 'classifier'
 
 
-# class Customer(models.Model):
-#     code = models.CharField('Код', blank=True, null=True)  # Field name made lowercase.
-#     entity_id = models.CharField('Код компании', blank=True, null=True)  # Field name made lowercase.
-#     name = models.CharField('Название', blank=True, null=True)  # Field name made lowercase.
-#     organization_code = models.CharField('Код организации', blank=True, null=True)
-
-#     class Meta:
-       
-#         db_table = 'customer'
-
 class Category(models.Model):
     hierarchy_key_id = models.BigIntegerField('иерархия', blank=True, null=True)  # Field name made lowercase.
     category_parent = models.BigIntegerField('Род. категория', blank=True, null=True)  # Field name made lowercase.
@@ -221,8 +211,6 @@ class IncludedProduct(models.Model):
 
 class IncludedVenddoc(models.Model):
     venddoc = models.ForeignKey('Venddoc', models.DO_NOTHING, db_constraint=False, blank=True, null=True)
-    sum = models.FloatField('Сумма без ндс', blank=True, null=True)
-    sum_tax = models.FloatField('Сумма с ндс', blank=True, null=True)
     graph = models.ForeignKey('KuGraph', models.DO_NOTHING, db_constraint=False, blank=True, null=True)
 
     class Meta:
